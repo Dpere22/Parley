@@ -2,7 +2,7 @@
 name = "pony-express"
 version = "0.1.0"
 description = "Web API for PonyExpress messaging application"
-authors = ["your name <your_email@example.com>"]
+authors = ["Diego Perez u1301598@utah.edu"]
 readme = "README.md"
 package-mode = false
 
