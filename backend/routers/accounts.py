@@ -1,5 +1,3 @@
-from typing import Dict, List
-
 from fastapi import APIRouter
 
 from backend.database import accounts as accounts_db

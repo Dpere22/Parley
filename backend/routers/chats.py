@@ -1,16 +1,19 @@
 from fastapi import APIRouter
-from typing import Annotated
-chats_router = APIRouter(prefix="/chats", tags=["chats"])
 
-#DBSession = Annotated[Session, Depends(get_session)]
+from backend.database import chats as chats_db
+from backend.database.schema import DBChat
+from backend.dependencies import DBSession
+from backend.models import Chat
+
+chats_router = APIRouter(prefix="/chats", tags=["chats"])
 
 @chats_router.get("/")
 def chats():
     pass
 
-@chats_router.get("/{chat_id}")
-def get_chat(chat_id: int):
-    pass
+@chats_router.get("/{chat_id}", response_model=Chat)
+def get_chat(session: DBSession, chat_id: int) -> DBChat:
+    return chats_db.get_by_id(session, chat_id)
 
 @chats_router.get("/{chat_id}/messages")
 def messages(chat_id: int):
