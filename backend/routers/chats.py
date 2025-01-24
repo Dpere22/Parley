@@ -1,6 +1,8 @@
 from fastapi import APIRouter
-
+from typing import Annotated
 chats_router = APIRouter(prefix="/chats", tags=["chats"])
+
+#DBSession = Annotated[Session, Depends(get_session)]
 
 @chats_router.get("/")
 def chats():
