@@ -2,6 +2,10 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+
+class Metadata(BaseModel):
+    count: int
+
 class Account(BaseModel):
     id: int
     username: str
@@ -10,9 +14,9 @@ class Chat(BaseModel):
     id: int
     name: str
     owner_id: int
-
+    
 class Accounts(BaseModel):
-    metadata: int
+    metadata: Metadata
     accounts: list[Account]
 
 class Chats(BaseModel):

@@ -8,10 +8,10 @@ from backend.models import Account, Accounts
 accounts_router = APIRouter(prefix="/accounts", tags=["accounts"])
 
 @accounts_router.get("/", response_model=Accounts)
-def get_accounts(session: DBSession) -> dict[str, int | list[DBAccount]]:
+def get_accounts(session: DBSession) -> dict[str, dict[str, int] | list[DBAccount]]:
     accounts = accounts_db.get_all(session)
     metadata = len(accounts)
-    return {"metadata": metadata, "accounts": accounts}
+    return {"metadata": {"count": metadata}, "accounts": accounts}
 
 @accounts_router.get("/{account_id}", response_model=Account)
 def get_account(session: DBSession, account_id: int) -> DBAccount:

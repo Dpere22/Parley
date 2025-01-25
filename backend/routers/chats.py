@@ -4,12 +4,12 @@ from backend.database import chats as chats_db
 from backend.database.schema import DBChat
 from backend.dependencies import DBSession
 from backend.exceptions import EntityNotFound
-from backend.models import Chat, ChatMessages, ChatMembers
+from backend.models import Chat, ChatMessages, ChatMembers, Chats
 
 chats_router = APIRouter(prefix="/chats", tags=["chats"])
 
-@chats_router.get("/")
-def chats(session: DBSession):
+@chats_router.get("/", response_model = Chats)
+def chats(session: DBSession) -> dict[str, int | list[DBChat]]:
     all_chats = chats_db.get_all(session)
     metadata = len(all_chats)
     return {"metadata": metadata, "accounts": all_chats}
