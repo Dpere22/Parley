@@ -13,3 +13,4 @@ def get_by_id(session: Session, account_id: int) -> DBAccount:
     if account is None:
         raise EntityNotFound("account", account_id)
     return account
+
