@@ -20,7 +20,7 @@ class Accounts(BaseModel):
     accounts: list[Account]
 
 class Chats(BaseModel):
-    metadata: int
+    metadata: Metadata
     chats: list[Chat]
 
 class Message(BaseModel):
@@ -31,9 +31,9 @@ class Message(BaseModel):
     created_at: datetime
 
 class ChatMessages(BaseModel):
-    metadata: int
+    metadata: Metadata
     messages: list[Message]
 
 class ChatMembers(BaseModel):
-    metadata: int
+    metadata: Metadata
     members: list[Account]
