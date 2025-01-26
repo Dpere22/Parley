@@ -25,8 +25,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="<your API title>",
-    summary="<your API summary>",
+    title="PonyExpress Backend",
+    summary="Get info from database",
     lifespan=lifespan,
 )
 

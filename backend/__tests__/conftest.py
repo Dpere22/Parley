@@ -7,7 +7,7 @@ from backend.database.schema import *
 from backend.dependencies import get_session
 
 from datetime import datetime
-
+## SETUP SESSION
 @pytest.fixture
 def session():
     engine = create_engine(
@@ -19,6 +19,7 @@ def session():
     with Session(engine) as session:
         yield session
 
+## SETUP TEST DATABASE
 @pytest.fixture
 def account_data():
     return {
@@ -61,7 +62,7 @@ def setup_db(session, account_data, chat_data, message_data, chat_membership_dat
         session.add(DBChatMembership(**chat_membership))
     session.commit()
 
-
+## SETUP CLIENT
 @pytest.fixture
 def client(session):
     def _get_session_override():
