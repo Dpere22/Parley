@@ -6,6 +6,7 @@ from backend import app
 from backend.database.schema import *
 from backend.dependencies import get_session
 
+from datetime import datetime
 
 @pytest.fixture
 def session():
@@ -33,12 +34,33 @@ def chat_data():
     }
 
 @pytest.fixture
-def setup_db(session, account_data, chat_data):
+def message_data():
+    return{
+        1: {"id": 1, "text": "hi gamers", "account_id": 1, "chat_id": 1, "created_at": datetime(2025, 1, 25, 5, 19, 49)},
+        2: {"id": 2, "text": "hi :3", "account_id": 2, "chat_id": 1, "created_at": datetime(2025, 1, 25, 5, 20, 34)},
+        3: {"id": 3, "text": "just me huh", "account_id": 2, "chat_id": 2, "created_at": datetime(2025, 1, 25, 10, 20, 49)},
+    }
+
+@pytest.fixture
+def chat_membership_data():
+    return {
+        1: {"account_id": 1, "chat_id": 1},
+        2: {"account_id": 2, "chat_id": 1},
+        3: {"account_id": 2, "chat_id": 2},
+    }
+
+@pytest.fixture
+def setup_db(session, account_data, chat_data, message_data, chat_membership_data):
     for account in account_data.values():
         session.add(DBAccount(**account))
     for chat in chat_data.values():
         session.add(DBChat(**chat))
+    for message in message_data.values():
+        session.add(DBMessage(**message))
+    for chat_membership in chat_membership_data.values():
+        session.add(DBChatMembership(**chat_membership))
     session.commit()
+
 
 @pytest.fixture
 def client(session):

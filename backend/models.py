@@ -34,6 +34,6 @@ class ChatMessages(BaseModel):
     metadata: Metadata
     messages: list[Message]
 
-class ChatMembers(BaseModel):
+class ChatAccounts(BaseModel):
     metadata: Metadata
-    members: list[Account]
+    accounts: list[Account]
