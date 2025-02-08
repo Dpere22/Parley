@@ -3,9 +3,8 @@ from fastapi import APIRouter
 from backend.database import chats as chats_db
 from backend.database.schema import DBChat, DBMessage, DBAccount
 from backend.dependencies import DBSession
-from backend.exceptions import EntityNotFound, NotFound
-from backend.models import Chat, ChatMessages, ChatAccounts, Chats
-
+from backend.exceptions import EntityNotFound, NotFound, DuplicateEntity
+from backend.models import Chat, ChatMessages, ChatAccounts, Chats, ChatCreate
 
 chats_router = APIRouter(prefix="/chats", tags=["chats"])
 
@@ -69,3 +68,21 @@ def chat_accounts(session: DBSession, chat_id: int) -> dict[str, dict[str, int] 
     all_members = chats_db.get_chat_members(session, chat_id)
     metadata = len(all_members)
     return {"metadata": {"count": metadata}, "accounts": all_members}
+
+
+@chats_router.post("/", response_model=Chat,
+                   summary="Create a new chat",
+                   response_description="Chat object",
+                   status_code=201,
+                   responses={
+                       404: {
+                           "model": NotFound,
+                           "description": "Account not found"
+                       },
+                       422:{
+                           "model": DuplicateEntity,
+                           "description": "Chat name already exists"
+                       }
+                   })
+def create_chat(chat: ChatCreate, session: DBSession) -> DBChat:
+    return chats_db.create_chat(session, chat)

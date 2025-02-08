@@ -37,3 +37,7 @@ class ChatMessages(BaseModel):
 class ChatAccounts(BaseModel):
     metadata: Metadata
     accounts: list[Account]
+
+class ChatCreate(BaseModel):
+    name: str
+    owner_id: int
