@@ -217,3 +217,17 @@ def test_update_chat_does_not_exist_fail(setup_db, client, account_data, chat_me
         "error": "entity_not_found",
         "message": "Unable to find chat with id=7"
     }
+
+def test_delete_chat(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
+    response = client.delete("/chats/1")
+    assert response.status_code == 204
+    response2 = client.get("/chats/1")
+    assert response2.status_code == 404
+
+def test_delete_chat_does_not_exist_fail(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
+    response = client.delete("/chats/7")
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": "entity_not_found",
+        "message": "Unable to find chat with id=7"
+    }

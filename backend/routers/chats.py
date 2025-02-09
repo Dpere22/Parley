@@ -91,3 +91,7 @@ def create_chat(chat: ChatCreate, session: DBSession) -> DBChat:
 @chats_router.put("/{chat_id}", response_model=Chat, status_code=200)
 def update_chat(chat: ChatUpdate, session: DBSession, chat_id: int) -> DBChat:
     return chats_db.update_chat(session, chat_id, chat)
+
+@chats_router.delete("/{chat_id}", status_code=204)
+def delete_chat(session: DBSession, chat_id: int):
+    chats_db.delete_chat(session, chat_id)

@@ -70,6 +70,10 @@ def update_chat(session: Session, chat_id: int, update: ChatUpdate) -> DBChat:
     session.refresh(chat)
     return chat
 
+def delete_chat(session: Session, chat_id: int):
+    chat = get_by_id(session, chat_id)
+    session.delete(chat)
+    session.commit()
 
 def _validate_user_exists(session: Session, user_id: int) -> DBAccount:
     stmt = select(DBAccount).where(DBAccount.id == user_id)
