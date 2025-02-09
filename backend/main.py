@@ -14,7 +14,7 @@ from backend.dependencies import create_db_tables
 from backend.routers.accounts import accounts_router
 from backend.routers.chats import chats_router
 
-from backend.exceptions import EntityNotFound, DuplicateEntityValue, AccountNotInChat
+from backend.exceptions import *
 
 
 
@@ -40,6 +40,10 @@ def handle_duplicate_value(request: Request, exception: DuplicateEntityValue):
 
 @app.exception_handler(AccountNotInChat)
 def handle_account_not_in_chat(request: Request, exception: AccountNotInChat):
+    return exception.response()
+
+@app.exception_handler(OwnerRemoval)
+def handle_owner_removal(request: Request, exception: OwnerRemoval):
     return exception.response()
 for router in [accounts_router, chats_router]:
     app.include_router(router)

@@ -114,3 +114,6 @@ def add_account_to_chat(account: AddAccountToChat, chat_id: int, session: DBSess
     response.status_code = 201 if created else 200
     return result
 
+@chats_router.delete("/{chat_id}/accounts/{account_id}", status_code=204)
+def delete_account_from_chat(chat_id: int, account_id: int, session: DBSession):
+    chats_db.delete_account_from_chat(session, chat_id, account_id)

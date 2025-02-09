@@ -39,3 +39,14 @@ class AccountNotInChat(Exception):
             status_code = self.status_code,
             content=Err(error = "chat_membership_required", message = self.message).model_dump(),
         )
+
+class OwnerRemoval(Exception):
+    def __init__(self):
+        self.status_code = 422
+        message = f"Unable to remove the owner of a chat"
+        self.message = message
+    def response(self) -> Response:
+        return JSONResponse(
+            status_code = self.status_code,
+            content=Err(error = "chat_owner_removal", message = self.message).model_dump(),
+        )

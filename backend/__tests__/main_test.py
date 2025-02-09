@@ -366,3 +366,52 @@ def test_add_account_chat_does_not_exist(setup_db, client, account_data, message
         "error": "entity_not_found",
         "message": "Unable to find chat with id=4"
     }
+
+def test_remove_account_from_chat(setup_db, client, account_data, message_data, chat_membership_data):
+    response = client.delete("/chats/1/accounts/2")
+    assert response.status_code == 204
+    response2 = client.get("/chats/1/messages")
+    assert response2.status_code == 200
+    assert response2.json() == {
+        "metadata": {"count": 2},
+        "messages": [
+            {
+                "id": 1,
+                "text": "hi gamers",
+                "account_id": 1,
+                "chat_id": 1,
+                "created_at": "2025-01-25T05:19:49"
+            },
+            {
+                "id": 2,
+                "text": "hi :3",
+                "account_id": None,
+                "chat_id": 1,
+                "created_at": "2025-01-25T05:20:34"
+            }
+        ]
+    }
+
+def test_remove_account_owner_of_chat_fail(setup_db, client, account_data, message_data, chat_membership_data):
+    response = client.delete("/chats/1/accounts/1")
+    assert response.status_code == 422
+    assert response.json() == {
+        "error": "chat_owner_removal",
+        "message": "Unable to remove the owner of a chat"
+    }
+
+def test_remove_account_not_in_chat_fail(setup_db, client, account_data, message_data, chat_membership_data):
+    response = client.delete("/chats/2/accounts/1")
+    assert response.status_code == 422
+    assert response.json() == {
+        "error": "chat_membership_required",
+        "message": "Account with id=1 must be a member of chat with id=2"
+    }
+
+def test_remove_account_chat_does_not_exist(setup_db, client, account_data, message_data, chat_membership_data):
+    response = client.delete("/chats/4/accounts/1")
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": "entity_not_found",
+        "message": "Unable to find chat with id=4"
+    }

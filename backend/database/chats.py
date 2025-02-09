@@ -1,10 +1,8 @@
-from typing import Any
-
 from sqlmodel import Session, select
 
 from backend.database.schema import DBChat, DBMessage, DBChatMembership, DBAccount
 from backend.models import ChatCreate, ChatUpdate, CreateMessage, UpdateMessage, Account, AddAccountToChat
-from backend.exceptions import EntityNotFound, DuplicateEntityValue, AccountNotInChat
+from backend.exceptions import *
 
 def get_all(session: Session) -> list[DBChat]:
     stmt = select(DBChat)
@@ -120,6 +118,27 @@ def add_account_to_chat(session: Session, chat_id: int, response_account: AddAcc
         stmt = select(DBChatMembership).where(DBChatMembership.chat_id == chat_id).where(DBChatMembership.account_id == account.id)
         membership = session.exec(stmt).first()
         return False, membership
+
+def delete_account_from_chat(session: Session, chat_id: int, account_id: int):
+    chat = get_by_id(session, chat_id)
+    _validate_user_in_chat(session, chat_id, account_id)
+    if chat.owner_id == account_id:
+        raise OwnerRemoval
+    messages = session.exec(
+        select(DBMessage).where(DBMessage.chat_id == chat_id, DBMessage.account_id == account_id)
+    ).all()
+
+    for message in messages:
+        message.account_id = None
+        session.add(message)
+    session.commit()
+
+
+    stmt = select(DBChatMembership).where(DBChatMembership.chat_id == chat_id).where(
+        DBChatMembership.account_id == account_id)
+    membership = session.exec(stmt).first()
+    session.delete(membership)
+    session.commit()
 
 
 def _validate_message_in_chat(session: Session, chat_id: int, message_id: int):
