@@ -20,7 +20,7 @@ class EntityNotFound(Exception):
 class DuplicateEntityValue(Exception):
     def __init__(self, entity_name: str):
         self.status_code = 422
-        message = f"Duplicate value: chat with name {entity_name} already exists"
+        message = f"Duplicate value: chat with name={entity_name} already exists"
         self.message = message
 
     def response(self) -> Response:

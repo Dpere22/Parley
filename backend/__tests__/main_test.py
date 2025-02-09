@@ -158,7 +158,7 @@ def test_create_chat_duplicate_name_fail(setup_db, client, account_data, chat_da
     assert response.status_code == 422
     assert response.json() == {
         "error": "duplicate_entity_value",
-        "message": "Duplicate value: chat with name gamers already exists"
+        "message": "Duplicate value: chat with name=gamers already exists"
     }
 
 def test_update_chat_name(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
@@ -193,7 +193,7 @@ def test_update_chat_name_fail(setup_db, client, account_data, chat_data, messag
     assert response.status_code == 422
     assert response.json() == {
         "error": "duplicate_entity_value",
-        "message": "Duplicate value: chat with name theboys already exists"
+        "message": "Duplicate value: chat with name=theboys already exists"
     }
 
 def test_update_chat_owner_fail(setup_db, client, account_data, chat_membership_data):
