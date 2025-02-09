@@ -103,3 +103,7 @@ def add_message_to_chat(message: CreateMessage, chat_id: int, session: DBSession
 @chats_router.put("/{chat_id}/messages/{message_id}", response_model=Message, status_code=200)
 def update_message_text(message: UpdateMessage, chat_id: int, message_id: int, session: DBSession) -> DBMessage:
     return chats_db.update_chat_message(session, chat_id, message_id, message)
+
+@chats_router.delete("/{chat_id}/messages/{message_id}", status_code=204)
+def delete_message_from_chat(chat_id: int, message_id: int, session: DBSession):
+    chats_db.delete_chat_message(session, chat_id, message_id)

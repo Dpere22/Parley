@@ -88,16 +88,26 @@ def add_chat_message(session: Session, chat_id: int, message: CreateMessage) -> 
 
 def update_chat_message(session: Session, chat_id: int, message_id: int, update_message: UpdateMessage) -> DBMessage:
     get_by_id(session, chat_id) #for checking if chat exists
-    stmt = select(DBMessage).where(DBMessage.id == message_id).where(DBMessage.chat_id == chat_id)
-    message = session.exec(stmt).first()
-    if message is None:
-        raise EntityNotFound("message", message_id)
+    message = _validate_message_in_chat(session, chat_id, message_id)
     message.text = update_message.text
     session.add(message)
     session.commit()
     session.refresh(message)
     return message
 
+def delete_chat_message(session: Session, chat_id: int, message_id: int):
+    get_by_id(session, chat_id)
+    message = _validate_message_in_chat(session, chat_id, message_id)
+    session.delete(message)
+    session.commit()
+
+
+def _validate_message_in_chat(session: Session, chat_id: int, message_id: int):
+    stmt = select(DBMessage).where(DBMessage.id == message_id).where(DBMessage.chat_id == chat_id)
+    message = session.exec(stmt).first()
+    if message is None:
+        raise EntityNotFound("message", message_id)
+    return message
 
 def _validate_user_in_chat(session: Session, chat_id: int, user_id: int):
     members = get_chat_members(session, chat_id)

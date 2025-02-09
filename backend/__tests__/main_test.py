@@ -302,3 +302,23 @@ def test_update_message_not_in_chat(setup_db, client, account_data, message_data
         "error": "entity_not_found",
         "message": "Unable to find message with id=1"
     }
+
+def test_delete_message(setup_db, client, account_data, message_data, chat_membership_data):
+    response = client.delete("/chats/1/messages/1")
+    assert response.status_code == 204
+
+def test_delete_message_chat_does_not_exist(setup_db, client, account_data, chat_membership_data):
+    response = client.delete("/chats/3/messages/1")
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": "entity_not_found",
+        "message": "Unable to find chat with id=3"
+    }
+
+def test_delete_message_not_in_chat(setup_db, client, account_data, chat_membership_data):
+    response = client.delete("/chats/1/messages/10")
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": "entity_not_found",
+        "message": "Unable to find message with id=10"
+    }
