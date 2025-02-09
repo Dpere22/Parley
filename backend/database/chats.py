@@ -1,7 +1,7 @@
 from sqlmodel import Session, select
 
 from backend.database.schema import DBChat, DBMessage, DBChatMembership, DBAccount
-from backend.models import ChatCreate, ChatUpdate, CreateMessage
+from backend.models import ChatCreate, ChatUpdate, CreateMessage, UpdateMessage
 from backend.exceptions import EntityNotFound, DuplicateEntityValue, AccountNotInChat
 
 def get_all(session: Session) -> list[DBChat]:
@@ -85,6 +85,18 @@ def add_chat_message(session: Session, chat_id: int, message: CreateMessage) -> 
     session.add(db_message)
     session.commit()
     return db_message
+
+def update_chat_message(session: Session, chat_id: int, message_id: int, update_message: UpdateMessage) -> DBMessage:
+    get_by_id(session, chat_id) #for checking if chat exists
+    stmt = select(DBMessage).where(DBMessage.id == message_id).where(DBMessage.chat_id == chat_id)
+    message = session.exec(stmt).first()
+    if message is None:
+        raise EntityNotFound("message", message_id)
+    message.text = update_message.text
+    session.add(message)
+    session.commit()
+    session.refresh(message)
+    return message
 
 
 def _validate_user_in_chat(session: Session, chat_id: int, user_id: int):

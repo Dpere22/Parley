@@ -4,7 +4,7 @@ from backend.database import chats as chats_db
 from backend.database.schema import DBChat, DBMessage, DBAccount
 from backend.dependencies import DBSession
 from backend.exceptions import EntityNotFound, Err
-from backend.models import Chat, ChatMessages, ChatAccounts, Chats, ChatCreate, ChatUpdate, Message, CreateMessage
+from backend.models import Chat, ChatMessages, ChatAccounts, Chats, ChatCreate, ChatUpdate, Message, CreateMessage, UpdateMessage
 
 chats_router = APIRouter(prefix="/chats", tags=["chats"])
 
@@ -99,3 +99,7 @@ def delete_chat(session: DBSession, chat_id: int):
 @chats_router.post("/{chat_id}/messages", response_model=Message, status_code=201)
 def add_message_to_chat(message: CreateMessage, chat_id: int, session: DBSession) -> DBMessage:
     return chats_db.add_chat_message(session, chat_id, message)
+
+@chats_router.put("/{chat_id}/messages/{message_id}", response_model=Message, status_code=200)
+def update_message_text(message: UpdateMessage, chat_id: int, message_id: int, session: DBSession) -> DBMessage:
+    return chats_db.update_chat_message(session, chat_id, message_id, message)

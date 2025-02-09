@@ -268,3 +268,37 @@ def test_add_message_account_not_part_of_chat(setup_db, client, account_data, me
         "error": "chat_membership_required",
         "message": "Account with id=1 must be a member of chat with id=2"
     }
+
+def test_update_message_text(setup_db, client, account_data, message_data, chat_membership_data):
+    request_data = {
+        "text": "hi imaginary friends!",
+    }
+    response = client.put("/chats/2/messages/3", json=request_data)
+    assert response.status_code == 200
+    server_response = response.json()
+    assert server_response["id"] == 3
+    assert server_response["text"] == "hi imaginary friends!"
+    assert server_response["account_id"] == 2
+    assert server_response["chat_id"] == 2
+
+def test_update_message_chat_does_not_exist(setup_db, client, account_data, message_data, chat_membership_data):
+    request_data = {
+        "text": "testing",
+    }
+    response = client.put("/chats/4/messages/1", json=request_data)
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": "entity_not_found",
+        "message": "Unable to find chat with id=4"
+    }
+
+def test_update_message_not_in_chat(setup_db, client, account_data, message_data, chat_membership_data):
+    request_data = {
+        "text": "testing",
+    }
+    response = client.put("/chats/2/messages/1", json=request_data)
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": "entity_not_found",
+        "message": "Unable to find message with id=1"
+    }

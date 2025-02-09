@@ -51,3 +51,6 @@ class ChatUpdate(BaseModel):
 class CreateMessage(BaseModel):
     text: str
     account_id: int
+
+class UpdateMessage(BaseModel):
+    text: str
