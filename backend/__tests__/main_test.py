@@ -231,3 +231,40 @@ def test_delete_chat_does_not_exist_fail(setup_db, client, account_data, chat_da
         "error": "entity_not_found",
         "message": "Unable to find chat with id=7"
     }
+
+def test_add_message_to_chat(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
+    request_data = {
+        "text": "LoL kinda fun ngl",
+        "account_id": 1
+    }
+    response = client.post("/chats/1/messages", json=request_data)
+    assert response.status_code == 201
+    server_response = response.json()
+    assert server_response["id"] == 4
+    assert server_response["text"] == "LoL kinda fun ngl"
+    assert server_response["account_id"] == 1
+    assert server_response["chat_id"] == 1
+
+def test_add_message_chat_does_not_exist(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
+    request_data = {
+        "text": "testing",
+        "account_id": 1
+    }
+    response = client.post("/chats/8/messages", json=request_data)
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": "entity_not_found",
+        "message": "Unable to find chat with id=8"
+    }
+
+def test_add_message_account_not_part_of_chat(setup_db, client, account_data, message_data, chat_membership_data):
+    request_data = {
+        "text": "testing",
+        "account_id": 1
+    }
+    response = client.post("/chats/2/messages", json=request_data)
+    assert response.status_code == 422
+    assert response.json() == {
+        "error": "chat_membership_required",
+        "message": "Account with id=1 must be a member of chat with id=2"
+    }

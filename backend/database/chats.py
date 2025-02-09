@@ -1,7 +1,7 @@
 from sqlmodel import Session, select
 
 from backend.database.schema import DBChat, DBMessage, DBChatMembership, DBAccount
-from backend.models import ChatCreate, ChatUpdate
+from backend.models import ChatCreate, ChatUpdate, CreateMessage
 from backend.exceptions import EntityNotFound, DuplicateEntityValue, AccountNotInChat
 
 def get_all(session: Session) -> list[DBChat]:
@@ -58,10 +58,7 @@ def update_chat(session: Session, chat_id: int, update: ChatUpdate) -> DBChat:
         chat.name = update.name
     ## Logic for updating owner id if necessary
     if update.owner_id is not None:
-        members = get_chat_members(session, chat.id)
-        owner = _validate_user_exists(session, update.owner_id)
-        if owner is None or owner not in members:
-            raise AccountNotInChat(update.owner_id, chat_id)
+        owner = _validate_user_in_chat(session, chat_id, update.owner_id)
         chat.owner = owner
         chat.owner_id = update.owner_id
     ## Update Database
@@ -74,6 +71,28 @@ def delete_chat(session: Session, chat_id: int):
     chat = get_by_id(session, chat_id)
     session.delete(chat)
     session.commit()
+
+def add_chat_message(session: Session, chat_id: int, message: CreateMessage) -> DBMessage:
+    chat = get_by_id(session, chat_id)
+    account = _validate_user_in_chat(session, chat_id, message.account_id)
+    db_message = DBMessage(
+        text=message.text,
+        chat_id=chat_id,
+        account_id=message.account_id,
+        account = account,
+        chat = chat,
+    )
+    session.add(db_message)
+    session.commit()
+    return db_message
+
+
+def _validate_user_in_chat(session: Session, chat_id: int, user_id: int):
+    members = get_chat_members(session, chat_id)
+    owner = _validate_user_exists(session, user_id)
+    if owner is None or owner not in members:
+        raise AccountNotInChat(user_id, chat_id)
+    return owner
 
 def _validate_user_exists(session: Session, user_id: int) -> DBAccount:
     stmt = select(DBAccount).where(DBAccount.id == user_id)

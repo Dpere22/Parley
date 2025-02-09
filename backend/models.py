@@ -47,3 +47,7 @@ class ChatCreate(BaseModel):
 class ChatUpdate(BaseModel):
     name: Optional[str] = None
     owner_id: Optional[int] = None
+
+class CreateMessage(BaseModel):
+    text: str
+    account_id: int
