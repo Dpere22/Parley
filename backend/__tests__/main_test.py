@@ -366,6 +366,16 @@ def test_add_account_chat_does_not_exist(setup_db, client, account_data, message
         "error": "entity_not_found",
         "message": "Unable to find chat with id=4"
     }
+def test_add_nonexistent_account_to_chat(setup_db, client, account_data, message_data, chat_membership_data):
+    request_data = {
+        "account_id": 8
+    }
+    response = client.post("/chats/1/accounts", json=request_data)
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": "entity_not_found",
+        "message": "Unable to find account with id=8"
+    }
 
 def test_remove_account_from_chat(setup_db, client, account_data, message_data, chat_membership_data):
     response = client.delete("/chats/1/accounts/2")

@@ -104,6 +104,8 @@ def delete_chat_message(session: Session, chat_id: int, message_id: int):
 def add_account_to_chat(session: Session, chat_id: int, response_account: AddAccountToChat) -> tuple[bool, DBChatMembership]:
     account_id = response_account.account_id
     account = _validate_user_exists(session, account_id)
+    if account is None:
+        raise EntityNotFound("account", account_id)
     get_by_id(session, chat_id) ## make sure chat exists
     members = get_chat_members(session, chat_id)
     if account not in members:
@@ -162,5 +164,10 @@ def _validate_user_exists(session: Session, user_id: int) -> DBAccount:
 
 def _validate_chat_exists(session: Session, chat_name: str) -> DBChat:
     stmt = select(DBChat).where(DBChat.name == chat_name)
+    result = session.exec(stmt).first()
+    return result
+
+def _validate_chat_exists_by_id(session: Session, chat_id: int) -> DBChat:
+    stmt = select(DBChat).where(DBChat.id == chat_id)
     result = session.exec(stmt).first()
     return result
