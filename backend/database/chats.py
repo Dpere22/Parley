@@ -1,8 +1,8 @@
 from sqlmodel import Session, select
 
 from backend.database.schema import DBChat, DBMessage, DBChatMembership, DBAccount
-from backend.models import ChatCreate
-from backend.exceptions import EntityNotFound, DuplicateEntityValue
+from backend.models import ChatCreate, ChatUpdate
+from backend.exceptions import EntityNotFound, DuplicateEntityValue, AccountNotInChat
 
 def get_all(session: Session) -> list[DBChat]:
     stmt = select(DBChat)
@@ -30,7 +30,7 @@ def create_chat(session: Session, chat: ChatCreate) -> DBChat:
     owner_id = chat.owner_id
     owner = _validate_user_exists(session, owner_id)
     if owner is None:
-        raise EntityNotFound("user", owner_id)
+        raise EntityNotFound("account", owner_id)
     if _validate_chat_exists(session, chat_name) is not None:
         raise DuplicateEntityValue(chat_name)
     db_chat = DBChat(
@@ -40,8 +40,35 @@ def create_chat(session: Session, chat: ChatCreate) -> DBChat:
     )
     session.add(db_chat)
     session.commit()
+    db_chat_membership = DBChatMembership(
+        chat_id=db_chat.id,
+        account_id=owner_id
+    )
+    session.add(db_chat_membership)
+    session.commit()
     return db_chat
 
+
+def update_chat(session: Session, chat_id: int, update: ChatUpdate) -> DBChat:
+    chat = get_by_id(session, chat_id)
+    ## Logic for updating chat name if necessary
+    if update.name is not None:
+        if _validate_chat_exists(session, update.name) is not None:
+            raise DuplicateEntityValue(update.name)
+        chat.name = update.name
+    ## Logic for updating owner id if necessary
+    if update.owner_id is not None:
+        members = get_chat_members(session, chat.id)
+        owner = _validate_user_exists(session, update.owner_id)
+        if owner is None or owner not in members:
+            raise AccountNotInChat(update.owner_id, chat_id)
+        chat.owner = owner
+        chat.owner_id = update.owner_id
+    ## Update Database
+    session.add(chat)
+    session.commit()
+    session.refresh(chat)
+    return chat
 
 
 def _validate_user_exists(session: Session, user_id: int) -> DBAccount:

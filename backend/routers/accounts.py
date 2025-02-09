@@ -4,7 +4,7 @@ from backend.database import accounts as accounts_db
 from backend.database.schema import DBAccount
 from backend.dependencies import DBSession
 from backend.models import Account, Accounts
-from backend.exceptions import NotFound
+from backend.exceptions import Err
 
 accounts_router = APIRouter(prefix="/accounts", tags=["accounts"])
 
@@ -23,7 +23,7 @@ def get_accounts(session: DBSession) -> dict[str, dict[str, int] | list[DBAccoun
                      response_description="Account object",
                      responses={
                          404: {
-                             "model": NotFound,
+                             "model": Err,
                              "description": "Account not found"
                          }
                      })

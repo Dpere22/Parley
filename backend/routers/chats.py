@@ -3,8 +3,8 @@ from fastapi import APIRouter
 from backend.database import chats as chats_db
 from backend.database.schema import DBChat, DBMessage, DBAccount
 from backend.dependencies import DBSession
-from backend.exceptions import EntityNotFound, NotFound, DuplicateEntity
-from backend.models import Chat, ChatMessages, ChatAccounts, Chats, ChatCreate
+from backend.exceptions import EntityNotFound, Err
+from backend.models import Chat, ChatMessages, ChatAccounts, Chats, ChatCreate, ChatUpdate
 
 chats_router = APIRouter(prefix="/chats", tags=["chats"])
 
@@ -23,7 +23,7 @@ def chats(session: DBSession) -> dict[str, dict[str, int] | list[DBChat]]:
                   summary="Get a chat by id",
                   responses={
                          404: {
-                             "model": NotFound,
+                             "model": Err,
                              "description": "Chat not found"
                          }
                      })
@@ -39,7 +39,7 @@ def get_chat(session: DBSession, chat_id: int) -> DBChat:
                   response_description="Message count and all messages objects",
                   responses={
                          404: {
-                             "model": NotFound,
+                             "model": Err,
                              "description": "Chat not found"
                          }
                      })
@@ -57,7 +57,7 @@ def messages(session: DBSession, chat_id: int) -> dict[str, dict[str, int] | lis
                   response_description="Account count, and all accounts objects",
                   responses={
                          404: {
-                             "model": NotFound,
+                             "model": Err,
                              "description": "Chat not found"
                          }
                      })
@@ -76,13 +76,18 @@ def chat_accounts(session: DBSession, chat_id: int) -> dict[str, dict[str, int] 
                    status_code=201,
                    responses={
                        404: {
-                           "model": NotFound,
+                           "model": Err,
                            "description": "Account not found"
                        },
                        422:{
-                           "model": DuplicateEntity,
+                           "model": Err,
                            "description": "Chat name already exists"
                        }
                    })
 def create_chat(chat: ChatCreate, session: DBSession) -> DBChat:
     return chats_db.create_chat(session, chat)
+
+
+@chats_router.put("/{chat_id}", response_model=Chat, status_code=200)
+def update_chat(chat: ChatUpdate, session: DBSession, chat_id: int) -> DBChat:
+    return chats_db.update_chat(session, chat_id, chat)

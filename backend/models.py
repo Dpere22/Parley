@@ -2,6 +2,8 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
+from typing import Optional
+
 
 class Metadata(BaseModel):
     count: int
@@ -41,3 +43,7 @@ class ChatAccounts(BaseModel):
 class ChatCreate(BaseModel):
     name: str
     owner_id: int
+
+class ChatUpdate(BaseModel):
+    name: Optional[str] = None
+    owner_id: Optional[int] = None
