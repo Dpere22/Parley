@@ -54,3 +54,10 @@ class CreateMessage(BaseModel):
 
 class UpdateMessage(BaseModel):
     text: str
+
+class AddAccountToChat(BaseModel):
+    account_id: int
+
+class ChatMembership(BaseModel):
+    chat_id: int
+    account_id: int

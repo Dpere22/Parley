@@ -307,7 +307,7 @@ def test_delete_message(setup_db, client, account_data, message_data, chat_membe
     response = client.delete("/chats/1/messages/1")
     assert response.status_code == 204
 
-def test_delete_message_chat_does_not_exist(setup_db, client, account_data, chat_membership_data):
+def test_delete_message_chat_does_not_exist(setup_db, client, account_data, message_data, chat_membership_data):
     response = client.delete("/chats/3/messages/1")
     assert response.status_code == 404
     assert response.json() == {
@@ -315,10 +315,54 @@ def test_delete_message_chat_does_not_exist(setup_db, client, account_data, chat
         "message": "Unable to find chat with id=3"
     }
 
-def test_delete_message_not_in_chat(setup_db, client, account_data, chat_membership_data):
+def test_delete_message_not_in_chat(setup_db, client, account_data, message_data, chat_membership_data):
     response = client.delete("/chats/1/messages/10")
     assert response.status_code == 404
     assert response.json() == {
         "error": "entity_not_found",
         "message": "Unable to find message with id=10"
+    }
+
+def test_add_account_to_chat(setup_db, client, account_data, message_data, chat_membership_data):
+    request_data = {
+        "account_id": 1
+    }
+    response = client.post("/chats/2/accounts", json=request_data)
+    assert response.status_code == 201
+    assert response.json() == {
+        "chat_id": 2,
+        "account_id": 1
+    }
+    response2 = client.get("/chats/2/accounts")
+    assert response2.status_code == 200
+    assert response2.json() == {
+        "metadata": {"count": 2},
+        "accounts": [
+            {
+                "id": 2,
+                "username": "loldleman"
+            },
+            {
+                "id": 1,
+                "username": "jamaron"
+            }
+        ]
+    }
+
+def test_add_account_already_in_chat(setup_db, client, account_data, message_data, chat_membership_data):
+    request_data = {
+        "account_id": 1
+    }
+    response = client.post("/chats/1/accounts", json=request_data)
+    assert response.status_code == 200
+
+def test_add_account_chat_does_not_exist(setup_db, client, account_data, message_data, chat_membership_data):
+    request_data = {
+        "account_id": 1
+    }
+    response = client.post("/chats/4/accounts", json=request_data)
+    assert response.status_code == 404
+    assert response.json() == {
+        "error": "entity_not_found",
+        "message": "Unable to find chat with id=4"
     }

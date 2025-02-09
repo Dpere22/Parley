@@ -1,11 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Response
+from starlette.responses import JSONResponse
 
 from backend.database import chats as chats_db
 from backend.database.schema import DBChat, DBMessage, DBAccount
 from backend.dependencies import DBSession
 from backend.exceptions import EntityNotFound, Err
-from backend.models import Chat, ChatMessages, ChatAccounts, Chats, ChatCreate, ChatUpdate, Message, CreateMessage, UpdateMessage
-
+from backend.models import *
 chats_router = APIRouter(prefix="/chats", tags=["chats"])
 
 
@@ -107,3 +107,10 @@ def update_message_text(message: UpdateMessage, chat_id: int, message_id: int, s
 @chats_router.delete("/{chat_id}/messages/{message_id}", status_code=204)
 def delete_message_from_chat(chat_id: int, message_id: int, session: DBSession):
     chats_db.delete_chat_message(session, chat_id, message_id)
+
+@chats_router.post("/{chat_id}/accounts", response_model=ChatMembership, status_code=201)
+def add_account_to_chat(account: AddAccountToChat, chat_id: int, session: DBSession, response: Response = None):
+    created, result = chats_db.add_account_to_chat(session, chat_id, account)
+    response.status_code = 201 if created else 200
+    return result
+
