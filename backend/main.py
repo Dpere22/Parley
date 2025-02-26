@@ -51,6 +51,11 @@ def handle_owner_removal(request: Request, exception: OwnerRemoval):
 def handle_invalid_credentials(request: Request, exc: InvalidCredentials):
     return exc.response()
 
+@app.exception_handler(NotAuthenticated)
+def handle_not_authenticated(request: Request, exc: NotAuthenticated):
+    return exc.response()
+
+
 
 for router in [accounts_router, chats_router, auth_router]:
     app.include_router(router)
