@@ -55,7 +55,7 @@ class InvalidCredentials(Exception):
     def __init__(self): 
         self.status_code = 401
         self.error = "Invalid username or password"
-        self.message = "Invalid username or password"
+        self.message = "Authentication failed: invalid username or password"
     def response(self) -> Response:
         return JSONResponse(
             status_code = self.status_code,
