@@ -18,7 +18,7 @@ def get_token(session: DBSession, form: Annotated[Login, Form()]) -> AccessToken
     token = generate_token(session, form)
     return AccessToken(access_token=token, token_type="bearer")
 
-@auth_router.post("/auth/web/login", status_code=204)
+@auth_router.post("/web/login", status_code=204)
 def login(response: Response, session: DBSession, form: Annotated[Login, Form()]) -> None:
     token = generate_token(session, form)
     response.set_cookie(
