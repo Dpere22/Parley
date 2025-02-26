@@ -83,5 +83,5 @@ class AccessToken(BaseModel):
 class Claims(BaseModel):
     sub: str
     iss: str
-    iat: str
+    iat: int
     exp: int

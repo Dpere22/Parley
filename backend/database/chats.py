@@ -1,8 +1,9 @@
 from sqlmodel import Session, select
 
 from backend.database.schema import DBChat, DBMessage, DBChatMembership, DBAccount
-from backend.models import ChatCreate, ChatUpdate, CreateMessage, UpdateMessage, Account, AddAccountToChat
 from backend.exceptions import *
+from backend.models import ChatCreate, ChatUpdate, CreateMessage, UpdateMessage, AddAccountToChat
+
 
 def get_all(session: Session) -> list[DBChat]:
     stmt = select(DBChat)
@@ -10,7 +11,7 @@ def get_all(session: Session) -> list[DBChat]:
     return list(results)
 
 def get_by_id(session: Session, chat_id: int) -> DBChat:
-    chat = session.get(DBChat, chat_id)
+    chat = session.get(DBChat, chat_id).first()
     if chat is None:
         raise EntityNotFound("chat", chat_id)
     return chat
