@@ -13,6 +13,7 @@ from backend.dependencies import create_db_tables
 
 from backend.routers.accounts import accounts_router
 from backend.routers.chats import chats_router
+from backend.routers.auth import auth_router
 
 from backend.exceptions import *
 
@@ -45,7 +46,13 @@ def handle_account_not_in_chat(request: Request, exception: AccountNotInChat):
 @app.exception_handler(OwnerRemoval)
 def handle_owner_removal(request: Request, exception: OwnerRemoval):
     return exception.response()
-for router in [accounts_router, chats_router]:
+
+@app.exception_handler(InvalidCredentials)
+def handle_invalid_credentials(request: Request, exc: InvalidCredentials):
+    return exc.response()
+
+
+for router in [accounts_router, chats_router, auth_router]:
     app.include_router(router)
 
 

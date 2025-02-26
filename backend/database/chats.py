@@ -32,7 +32,7 @@ def create_chat(session: Session, chat: ChatCreate) -> DBChat:
     if owner is None:
         raise EntityNotFound("account", owner_id)
     if _validate_chat_exists(session, chat_name) is not None:
-        raise DuplicateEntityValue(chat_name)
+        raise DuplicateEntityValue("chat", "name", chat_name)
     db_chat = DBChat(
         owner_id=owner_id,
         name=chat_name,
@@ -54,7 +54,7 @@ def update_chat(session: Session, chat_id: int, update: ChatUpdate) -> DBChat:
     ## Logic for updating chat name if necessary
     if update.name is not None:
         if _validate_chat_exists(session, update.name) is not None:
-            raise DuplicateEntityValue(update.name)
+            raise DuplicateEntityValue("chat", "name", update.name)
         chat.name = update.name
     ## Logic for updating owner id if necessary
     if update.owner_id is not None:

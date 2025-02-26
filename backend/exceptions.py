@@ -18,9 +18,9 @@ class EntityNotFound(Exception):
         )
 
 class DuplicateEntityValue(Exception):
-    def __init__(self, entity_name: str):
+    def __init__(self, entity: str, entity_property: str, user_value: str):
         self.status_code = 422
-        message = f"Duplicate value: chat with name={entity_name} already exists"
+        message = f"Duplicate value: {entity} with {entity_property}={user_value} already exists"
         self.message = message
 
     def response(self) -> Response:
@@ -49,4 +49,15 @@ class OwnerRemoval(Exception):
         return JSONResponse(
             status_code = self.status_code,
             content=Err(error = "chat_owner_removal", message = self.message).model_dump(),
+        )
+
+class InvalidCredentials(Exception):
+    def __init__(self): 
+        self.status_code = 401
+        self.error = "Invalid username or password"
+        self.message = "Invalid username or password"
+    def response(self) -> Response:
+        return JSONResponse(
+            status_code = self.status_code,
+            content = Err(error = "invalid_credentials", message = self.message).model_dump()
         )
