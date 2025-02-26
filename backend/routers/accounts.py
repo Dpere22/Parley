@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import APIRouter, Depends
 
 from backend.database import accounts as accounts_db
@@ -31,6 +33,6 @@ def get_accounts(session: DBSession) -> dict[str, dict[str, int] | list[DBAccoun
 def get_account(session: DBSession, account_id: int) -> DBAccount:
     return accounts_db.get_by_id(session, account_id)
 
-@accounts_router.post("/me", dependencies=[Depends(get_current_user)])
-def get_me(session: DBSession) -> dict:
-    return {"message": "test!"}
+@accounts_router.post("/me")
+def get_me(session: DBSession, user: Annotated[User, Depends(get_current_user)]) -> User:
+    return user
