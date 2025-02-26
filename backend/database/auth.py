@@ -116,7 +116,7 @@ def get_access_token(cookie_token: str | None = Depends(cookie_scheme), bearer_t
     elif bearer_token is not None:
         return bearer_token.credentials
     else:
-        raise NotAuthenticated()
+        raise NotAuthenticatedNoToken()
 
 def get_current_user(session: Session = Depends(get_session), token: str = Depends(get_access_token)) -> DBAccount:
     return extract_user(session, token)

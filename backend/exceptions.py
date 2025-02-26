@@ -62,13 +62,13 @@ class InvalidCredentials(Exception):
             content = Err(error = "invalid_credentials", message = self.message).model_dump()
         )
 
-class NotAuthenticated(Exception):
+class NotAuthenticatedNoToken(Exception):
     def __init__(self):
         self.status_code = 403
         self.error = "Not authenticated"
-        self.message = "Authentication failed: not authenticated"
+        self.message = "Not Authenticated"
     def response(self) -> Response:
         return JSONResponse(
             status_code = self.status_code,
-            content = Err(error = "not_authenticated", message = self.message).model_dump()
+            content = Err(error = "authentication_required", message = self.message).model_dump()
         )

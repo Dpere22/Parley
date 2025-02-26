@@ -23,3 +23,7 @@ def login(response: Response, session: DBSession, form: Annotated[Login, Form()]
     token = generate_token(session, form)
     response.set_cookie(
         settings.jwt_cookie_key, token, httponly=True)
+
+@auth_router.post("/web/logout", status_code=204, dependencies=[Depends(get_current_user)])
+def logout(response: Response) -> None:
+    response.delete_cookie(settings.jwt_cookie_key)
