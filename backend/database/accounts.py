@@ -12,7 +12,7 @@ def get_by_id(session: Session, account_id: int) -> DBAccount:
     account = session.get(DBAccount, account_id)
     if account is None:
         raise EntityNotFound("account", account_id)
-    return account.first()
+    return account
 
 def _get_by_username(session: Session, username: str) -> DBAccount:
     stmt = select(DBAccount).where(DBAccount.username == username)
