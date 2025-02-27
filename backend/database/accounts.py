@@ -2,7 +2,8 @@ from sqlmodel import Session, select
 
 from backend.database.schema import DBAccount
 from backend.exceptions import EntityNotFound, InvalidCredentials, NotAuthenticatedExpiredToken, DuplicateEntityValue
-from backend.models import AccountUpdate
+from backend.models import AccountUpdate, PasswordUpdate
+from backend.database.password import verify_password, hash_password
 
 
 def get_all(session: Session) -> list[DBAccount]:
@@ -49,3 +50,14 @@ def update_account(update: AccountUpdate, user: DBAccount, session: Session) -> 
     session.commit()
     session.refresh(user)
     return user
+
+def update_password(form: PasswordUpdate, user: DBAccount, session: Session) -> None:
+    verified = verify_password(form.old_password, user.hashed_password)
+    if verified:
+        user.hashed_password = hash_password(form.new_password)
+        session.add(user)
+        session.commit()
+        session.refresh(user)
+    else:
+        raise InvalidCredentials()
+

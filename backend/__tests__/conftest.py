@@ -5,7 +5,7 @@ from starlette.testclient import TestClient
 from backend import app
 from backend.database.schema import *
 from backend.dependencies import get_session
-from backend.database import auth
+from backend.database import auth, accounts
 
 from datetime import datetime
 
@@ -81,6 +81,8 @@ def client(session, monkeypatch):
 
     monkeypatch.setattr(auth, "_hash_password", hash_password_stub)
     monkeypatch.setattr(auth, "_verify_password", verify_password_stub)
+    monkeypatch.setattr(accounts, "hash_password", hash_password_stub)
+    monkeypatch.setattr(accounts, "verify_password", verify_password_stub)
     app.dependency_overrides[get_session] = _get_session_override
     yield TestClient(app)
     app.dependency_overrides.clear()

@@ -89,3 +89,7 @@ class Claims(BaseModel):
 class AccountUpdate(BaseModel):
     username: Optional[str] = None
     email: Optional[str] = None
+
+class PasswordUpdate(BaseModel):
+    old_password: str
+    new_password: str

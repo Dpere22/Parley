@@ -7,7 +7,6 @@ from jose import jwt, ExpiredSignatureError
 from backend.dependencies import get_session
 from backend.models import Registration
 from backend.database.schema import *
-import bcrypt
 
 from sqlmodel import Session, select
 #from sqlalchemy import func
@@ -19,6 +18,8 @@ from backend.models import Login, Claims
 from backend.database.accounts import _get_by_username, get_by_id, check_email_available, check_username_available
 
 from backend.settings import settings
+
+import bcrypt
 
 cookie_scheme = APIKeyCookie(name=settings.jwt_cookie_key, auto_error=False)
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -35,18 +36,6 @@ def create_user(session: Session, form: Registration) -> DBAccount:
     session.refresh(user)
     return user
 
-
-def _hash_password(password):
-    return bcrypt.hashpw(
-        password.encode("utf-8"),
-        bcrypt.gensalt()
-    ).decode("utf-8")
-
-def _verify_password(password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(
-        password.encode("utf-8"),
-        hashed_password.encode("utf-8")
-    )
 
 def validate_credentials(user: DBAccount | None, password: str) -> DBAccount:
     if user is None or not _verify_password(password, user.hashed_password):
@@ -72,7 +61,17 @@ def generate_claims(user: DBAccount) -> Claims:
         exp=exp,
     )
 
+def _hash_password(password):
+    return bcrypt.hashpw(
+        password.encode("utf-8"),
+        bcrypt.gensalt()
+    ).decode("utf-8")
 
+def _verify_password(password: str, hashed_password: str) -> bool:
+    return bcrypt.checkpw(
+        password.encode("utf-8"),
+        hashed_password.encode("utf-8")
+    )
 
 def generate_token(session: Session, form: Login) -> str:
     user = _get_by_username(session, form.username)

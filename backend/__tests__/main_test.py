@@ -472,3 +472,23 @@ def test_update_me_username(setup_db, client, account_data, message_data, chat_m
     assert response.status_code == 200
     data = response.json()
     assert data["username"] == "UPDATED"
+
+def test_update_password_persist(setup_db, client, account_data, message_data, chat_membership_data):
+    token_response = client.post("/auth/token", data={"username": "loldleman", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response1 = client.put("/accounts/me/password", headers=headers, data={"old_password": "password", "new_password": "new_password"})
+    assert response1.status_code == 204
+    response2 = client.post("/auth/token", data={"username": "loldleman", "password": "new_password"})
+    assert response2.status_code == 200
+
+def test_update_password_wrong_old_password(setup_db, client, account_data, message_data, chat_membership_data):
+    token_response = client.post("/auth/token", data={"username": "loldleman", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response1 = client.put("/accounts/me/password", headers=headers, data={"old_password": "wrong_password", "new_password": "new_password"})
+    assert response1.status_code == 401
