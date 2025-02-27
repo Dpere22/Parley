@@ -63,8 +63,8 @@ def update_password(form: PasswordUpdate, user: DBAccount, session: Session) -> 
 
 def delete_account(session: Session, user: DBAccount) -> None:
     stmt = select(DBChat).where(DBChat.owner_id == user.id)
-    results = session.exec(stmt)
-    if results is not None:
+    result = session.exec(stmt).first()
+    if result is not None:
         raise OwnerRemoval()
     session.delete(user)
     session.commit()

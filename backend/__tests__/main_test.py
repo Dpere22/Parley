@@ -502,4 +502,13 @@ def test_remove_login_account_own_chats(setup_db, client, account_data, message_
     response = client.delete("/accounts/me", headers=headers)
     assert response.status_code == 422
 
+def test_remove_login_account(setup_db, client, account_data, message_data, chat_membership_data):
+    token_response = client.post("/auth/token", data={"username": "john", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = client.delete("/accounts/me", headers=headers)
+    assert response.status_code == 204
+
 ## NEED TO ADD ONE FOR REMOVE ACCOUNT WITH NO CHAT BUT WILL NEED ADJUST CONFTEST

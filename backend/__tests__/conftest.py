@@ -35,7 +35,8 @@ def session():
 def account_data():
     return {
         1: {"id": 1, "username": "jamaron", "email": "jm@jm.com", "hashed_password": "hashed_password"},
-        2: {"id": 2, "username": "loldleman", "email": "lm@lm.com", "hashed_password": "hashed_password"}
+        2: {"id": 2, "username": "loldleman", "email": "lm@lm.com", "hashed_password": "hashed_password"},
+        3: {"id": 3, "username": "john", "email": "cringe@cringe.com", "hashed_password": "hashed_password"},
     }
 
 @pytest.fixture
