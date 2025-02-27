@@ -39,6 +39,10 @@ def update_login_in_user(account: AccountUpdate, session: DBSession, user: Annot
     account = accounts_db.update_account(account, user, session)
     return User(**account.model_dump())
 
+@accounts_router.delete("/me", status_code=204)
+def delete_login_in_user(session: DBSession, user: Annotated[DBAccount, Depends(get_current_user)]):
+    return accounts_db.delete_account(session, user)
+
 @accounts_router.get("/{account_id}",
                      response_model=Account,
                      summary="Get account by id",

@@ -492,3 +492,14 @@ def test_update_password_wrong_old_password(setup_db, client, account_data, mess
 
     response1 = client.put("/accounts/me/password", headers=headers, data={"old_password": "wrong_password", "new_password": "new_password"})
     assert response1.status_code == 401
+
+def test_remove_login_account_own_chats(setup_db, client, account_data, message_data, chat_membership_data):
+    token_response = client.post("/auth/token", data={"username": "loldleman", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = client.delete("/accounts/me", headers=headers)
+    assert response.status_code == 422
+
+## NEED TO ADD ONE FOR REMOVE ACCOUNT WITH NO CHAT BUT WILL NEED ADJUST CONFTEST

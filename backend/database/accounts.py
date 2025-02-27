@@ -1,7 +1,7 @@
 from sqlmodel import Session, select
 
-from backend.database.schema import DBAccount
-from backend.exceptions import EntityNotFound, InvalidCredentials, NotAuthenticatedExpiredToken, DuplicateEntityValue
+from backend.database.schema import DBAccount, DBChat
+from backend.exceptions import EntityNotFound, InvalidCredentials, DuplicateEntityValue, OwnerRemoval
 from backend.models import AccountUpdate, PasswordUpdate
 from backend.database.password import verify_password, hash_password
 
@@ -60,4 +60,12 @@ def update_password(form: PasswordUpdate, user: DBAccount, session: Session) -> 
         session.refresh(user)
     else:
         raise InvalidCredentials()
+
+def delete_account(session: Session, user: DBAccount) -> None:
+    stmt = select(DBChat).where(DBChat.owner_id == user.id)
+    results = session.exec(stmt)
+    if results is not None:
+        raise OwnerRemoval()
+    session.delete(user)
+    session.commit()
 
