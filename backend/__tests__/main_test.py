@@ -434,3 +434,41 @@ def test_get_accounts_me_with_token_status_code(setup_db, client, account_data, 
 
     response = client.get("/accounts/me", headers=headers)
     assert response.status_code == 200
+
+def test_update_me_status_username(setup_db, client, account_data, message_data, chat_membership_data):
+    token_response = client.post("/auth/token", data={"username": "loldleman", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    request_data = {
+        "username": "UPDATED"
+    }
+    response = client.put("/accounts/me", headers=headers, json=request_data)
+    assert response.status_code == 200
+
+def test_update_me_status_email(setup_db, client, account_data, message_data, chat_membership_data):
+    token_response = client.post("/auth/token", data={"username": "loldleman", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    request_data = {
+        "email": "UPDATED"
+    }
+    response = client.put("/accounts/me", headers=headers, json=request_data)
+    assert response.status_code == 200
+
+def test_update_me_username(setup_db, client, account_data, message_data, chat_membership_data):
+    token_response = client.post("/auth/token", data={"username": "loldleman", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    request_data = {
+        "username": "UPDATED"
+    }
+    response = client.put("/accounts/me", headers=headers, json=request_data)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["username"] == "UPDATED"

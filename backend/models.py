@@ -85,3 +85,7 @@ class Claims(BaseModel):
     iss: str
     iat: int
     exp: int
+
+class AccountUpdate(BaseModel):
+    username: Optional[str] = None
+    email: Optional[str] = None

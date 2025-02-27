@@ -16,7 +16,7 @@ from backend.exceptions import *
 
 from backend.models import Login, Claims
 
-from backend.database.accounts import _get_by_username, get_by_id
+from backend.database.accounts import _get_by_username, get_by_id, check_email_available, check_username_available
 
 from backend.settings import settings
 
@@ -61,16 +61,6 @@ def get_verified_user(session: Session, username: str, password: str) -> DBAccou
         return user
     raise InvalidCredentials()
 
-def check_username_available(session: Session, username: str) -> bool:
-    stmt = select(DBAccount).where(DBAccount.username == username)
-    user = session.exec(stmt).first()
-    return user is None
-
-def check_email_available(session: Session, email: str) -> bool:
-    #stmt = select(DBAccount).where(func.lower(DBAccount.email) == email.lower())
-    stmt = select(DBAccount).where(DBAccount.email == email)
-    user = session.exec(stmt).first()
-    return user is None
 
 def generate_claims(user: DBAccount) -> Claims:
     iat = int(datetime.now(timezone.utc).timestamp())
