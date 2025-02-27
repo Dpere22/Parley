@@ -26,7 +26,7 @@ def get_chat_members(session: Session, chat_id: int) -> list[DBAccount]:
     results = session.exec(stmt)
     return list(results)
 
-def create_chat(session: Session, chat: ChatCreate) -> DBChat:
+def create_chat(session: Session, chat: ChatCreate, user: DBAccount) -> DBChat:
     chat_name = chat.name
     owner_id = chat.owner_id
     owner = _validate_user_exists(session, owner_id)

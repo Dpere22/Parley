@@ -1,7 +1,10 @@
-from fastapi import APIRouter, Response
+from typing import Annotated
+
+from fastapi import APIRouter, Response, Depends
 from starlette.responses import JSONResponse
 
 from backend.database import chats as chats_db
+from backend.database.auth import get_current_user
 from backend.database.schema import DBChat, DBMessage, DBAccount
 from backend.dependencies import DBSession
 from backend.exceptions import EntityNotFound, Err
@@ -84,8 +87,8 @@ def chat_accounts(session: DBSession, chat_id: int) -> dict[str, dict[str, int] 
                            "description": "Chat name already exists"
                        }
                    })
-def create_chat(chat: ChatCreate, session: DBSession) -> DBChat:
-    return chats_db.create_chat(session, chat)
+def create_chat(chat: ChatCreate, session: DBSession, user: Annotated[DBAccount, Depends(get_current_user)]) -> DBChat:
+    return chats_db.create_chat(session, chat, user) ## still need to update db function to check id
 
 
 @chats_router.put("/{chat_id}",

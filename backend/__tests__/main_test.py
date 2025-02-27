@@ -510,5 +510,3 @@ def test_remove_login_account(setup_db, client, account_data, message_data, chat
 
     response = client.delete("/accounts/me", headers=headers)
     assert response.status_code == 204
-
-## NEED TO ADD ONE FOR REMOVE ACCOUNT WITH NO CHAT BUT WILL NEED ADJUST CONFTEST
