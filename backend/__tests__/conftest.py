@@ -5,9 +5,20 @@ from starlette.testclient import TestClient
 from backend import app
 from backend.database.schema import *
 from backend.dependencies import get_session
+from backend.database import auth
 
 from datetime import datetime
+
 ## SETUP SESSION
+
+
+def hash_password_stub(password: str) -> str:
+    return f"hashed_{password}"
+
+def verify_password_stub(password: str, hashed_password: str) -> bool:
+    return hash_password_stub(password) == hashed_password
+
+
 @pytest.fixture
 def session():
     engine = create_engine(
@@ -23,8 +34,8 @@ def session():
 @pytest.fixture
 def account_data():
     return {
-        1: {"id": 1, "username": "jamaron", "email": "jm@jm.com", "hashed_password": "123"},
-        2: {"id": 2, "username": "loldleman", "email": "lm@lm.com", "hashed_password": "456"}
+        1: {"id": 1, "username": "jamaron", "email": "jm@jm.com", "hashed_password": "hashed_password"},
+        2: {"id": 2, "username": "loldleman", "email": "lm@lm.com", "hashed_password": "hashed_password"}
     }
 
 @pytest.fixture
@@ -64,10 +75,12 @@ def setup_db(session, account_data, chat_data, message_data, chat_membership_dat
 
 ## SETUP CLIENT
 @pytest.fixture
-def client(session):
+def client(session, monkeypatch):
     def _get_session_override():
         return session
 
+    monkeypatch.setattr(auth, "_hash_password", hash_password_stub)
+    monkeypatch.setattr(auth, "_verify_password", verify_password_stub)
     app.dependency_overrides[get_session] = _get_session_override
     yield TestClient(app)
     app.dependency_overrides.clear()

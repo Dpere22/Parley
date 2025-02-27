@@ -55,6 +55,9 @@ def handle_invalid_credentials(request: Request, exc: InvalidCredentials):
 def handle_not_authenticated(request: Request, exc: NotAuthenticatedNoToken):
     return exc.response()
 
+@app.exception_handler(NotAuthenticatedExpiredToken)
+def handle_not_authenticated_expired(request: Request, exc: NotAuthenticatedExpiredToken):
+    return exc.response()
 
 
 for router in [accounts_router, chats_router, auth_router]:

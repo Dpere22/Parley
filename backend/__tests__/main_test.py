@@ -425,3 +425,12 @@ def test_remove_account_chat_does_not_exist(setup_db, client, account_data, mess
         "error": "entity_not_found",
         "message": "Unable to find chat with id=4"
     }
+
+def test_get_accounts_me_with_token_status_code(setup_db, client, account_data, message_data, chat_membership_data):
+    token_response = client.post("/auth/token", data={"username": "loldleman", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = client.get("/accounts/me", headers=headers)
+    assert response.status_code == 200

@@ -20,6 +20,17 @@ def get_accounts(session: DBSession) -> dict[str, dict[str, int] | list[DBAccoun
     metadata = len(accounts)
     return {"metadata": {"count": metadata}, "accounts": accounts}
 
+@accounts_router.get("/me",
+                      responses={
+                          403: {
+                              "model": Err,
+                              "description": "Expired token"
+                          }
+                      })
+def get_me(user: Annotated[User, Depends(get_current_user)]) -> User:
+    return user
+
+
 @accounts_router.get("/{account_id}",
                      response_model=Account,
                      summary="Get account by id",
@@ -32,7 +43,3 @@ def get_accounts(session: DBSession) -> dict[str, dict[str, int] | list[DBAccoun
                      })
 def get_account(session: DBSession, account_id: int) -> DBAccount:
     return accounts_db.get_by_id(session, account_id)
-
-@accounts_router.post("/me")
-def get_me(session: DBSession, user: Annotated[User, Depends(get_current_user)]) -> User:
-    return user

@@ -104,7 +104,7 @@ def extract_user(session: Session, token:str) -> DBAccount:
         claims = Claims(**payload)
         return get_by_id(session, int(claims.sub))
     except ExpiredSignatureError:
-        raise InvalidCredentials()
+        raise NotAuthenticatedExpiredToken
     except Exception:
         raise InvalidCredentials()
 

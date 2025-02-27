@@ -72,3 +72,14 @@ class NotAuthenticatedNoToken(Exception):
             status_code = self.status_code,
             content = Err(error = "authentication_required", message = self.message).model_dump()
         )
+
+class NotAuthenticatedExpiredToken(Exception):
+    def __init__(self):
+        self.status_code = 403
+        self.error = "Not authenticated"
+        self.message = "Authentication failed: expired access token"
+    def response(self) -> Response:
+        return JSONResponse(
+            status_code = self.status_code,
+            content = Err(error = "expired_access_token", message = self.message).model_dump()
+        )
