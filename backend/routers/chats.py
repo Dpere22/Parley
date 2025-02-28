@@ -1,7 +1,6 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Response, Depends
-from starlette.responses import JSONResponse
 
 from backend.database import chats as chats_db
 from backend.database.auth import get_current_user
@@ -9,6 +8,7 @@ from backend.database.schema import DBChat, DBMessage, DBAccount
 from backend.dependencies import DBSession
 from backend.exceptions import EntityNotFound, Err
 from backend.models import *
+
 chats_router = APIRouter(prefix="/chats", tags=["chats"])
 
 
@@ -88,7 +88,7 @@ def chat_accounts(session: DBSession, chat_id: int) -> dict[str, dict[str, int] 
                        },
                        403:{
                            "model": Err,
-                           "description": "User not authenticated"
+                           "description": "User not authenticated, please log in"
                        }
                    })
 def create_chat(chat: ChatCreate, session: DBSession, user: Annotated[DBAccount, Depends(get_current_user)]) -> DBChat:
@@ -138,6 +138,10 @@ def delete_chat(session: DBSession, chat_id: int):
                        422: {
                            "model": Err,
                            "description": "Account does not exist or isn't a part of the chat"
+                       },
+                       403: {
+                           "model": Err,
+                           "description": "User not authenticated, please log in or cannot chat on behalf of another account"
                        }
                    })
 def add_message_to_chat(message: CreateMessage, chat_id: int, session: DBSession, user: Annotated[DBAccount, Depends(get_current_user)]) -> DBMessage:

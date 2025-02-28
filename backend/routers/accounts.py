@@ -21,25 +21,64 @@ def get_accounts(session: DBSession) -> dict[str, dict[str, int] | list[DBAccoun
     return {"metadata": {"count": metadata}, "accounts": accounts}
 
 @accounts_router.get("/me",
+                     summary="Get logged in user",
+                     response_model=User,
                       responses={
                           403: {
                               "model": Err,
-                              "description": "Expired token"
+                              "description": "Expired, invalid, or no token"
                           }
                       })
 def get_me(user: Annotated[User, Depends(get_current_user)]) -> User:
     return user
 
-@accounts_router.put("/me/password", status_code=204)
+@accounts_router.put("/me/password",
+                     status_code=204,
+                     summary="Update logged in user's password",
+                     responses={
+                         403: {
+                             "model": Err,
+                             "description": "Expired or invalid, or no token"
+                         },
+                         401: {
+                             "model": Err,
+                             "description": "Invalid username or password"
+                         }
+                     })
 def update_password(session: DBSession, form: Annotated[PasswordUpdate, Form()], user: Annotated[DBAccount, Depends(get_current_user)]):
     accounts_db.update_password(form, user, session)
 
-@accounts_router.put("/me")
+@accounts_router.put("/me",
+                     status_code=200,
+                     response_model=User,
+                     summary="Update logged in user's username or password",
+                     responses={
+                         403:{
+                             "model": Err,
+                             "description": "Expired or invalid, or no token"
+                         },
+                         422:{
+                             "model": Err,
+                             "description": "Email or username not available"
+                         }
+                     })
 def update_login_in_user(account: AccountUpdate, session: DBSession, user: Annotated[DBAccount, Depends(get_current_user)]) -> User:
     account = accounts_db.update_account(account, user, session)
     return User(**account.model_dump())
 
-@accounts_router.delete("/me", status_code=204)
+@accounts_router.delete("/me",
+                        status_code=204,
+                        summary="Delete logged in user",
+                        responses={
+                            403: {
+                                "model": Err,
+                                "description": "Expired, invalid, or no token"
+                            },
+                            422:{
+                                "model": Err,
+                                "description": "Cannot delete owner of a chat"
+                            }
+                        })
 def delete_login_in_user(session: DBSession, user: Annotated[DBAccount, Depends(get_current_user)]):
     return accounts_db.delete_account(session, user)
 
