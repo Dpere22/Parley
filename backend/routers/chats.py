@@ -140,8 +140,8 @@ def delete_chat(session: DBSession, chat_id: int):
                            "description": "Account does not exist or isn't a part of the chat"
                        }
                    })
-def add_message_to_chat(message: CreateMessage, chat_id: int, session: DBSession) -> DBMessage:
-    return chats_db.add_chat_message(session, chat_id, message)
+def add_message_to_chat(message: CreateMessage, chat_id: int, session: DBSession, user: Annotated[DBAccount, Depends(get_current_user)]) -> DBMessage:
+    return chats_db.add_chat_message(session, chat_id, message, user)
 
 @chats_router.put("/{chat_id}/messages/{message_id}",
                   response_model=Message,

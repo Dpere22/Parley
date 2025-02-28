@@ -75,8 +75,9 @@ def delete_chat(session: Session, chat_id: int):
     session.delete(chat)
     session.commit()
 
-def add_chat_message(session: Session, chat_id: int, message: CreateMessage) -> DBMessage:
+def add_chat_message(session: Session, chat_id: int, message: CreateMessage, user: DBAccount) -> DBMessage:
     chat = get_by_id(session, chat_id)
+    if message.account_id != user.id: raise AccessDeniedException
     account = _validate_user_in_chat(session, chat_id, message.account_id)
     db_message = DBMessage(
         text=message.text,
