@@ -2,7 +2,7 @@ def test_get_accounts(setup_db, client, account_data, chat_data,  message_data, 
     response = client.get("/accounts")
     assert response.status_code == 200
     assert response.json() == {
-        "metadata": {"count": 2},
+        "metadata": {"count": 3},
         "accounts": [
             {
                 "id": 1,
@@ -11,6 +11,10 @@ def test_get_accounts(setup_db, client, account_data, chat_data,  message_data, 
             {
                 "id": 2,
                 "username": "loldleman"
+            },
+            {
+                "id": 3,
+                "username": "john"
             }
         ]
     }
@@ -24,11 +28,11 @@ def test_get_account_by_id(setup_db, client, account_data, chat_data,  message_d
     }
 
 def test_get_account_by_id_fail(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
-    response = client.get("/accounts/3")
+    response = client.get("/accounts/4")
     assert response.status_code == 404
     assert response.json() == {
         "error": "entity_not_found",
-        "message": "Unable to find account with id=3"
+        "message": "Unable to find account with id=4"
     }
 
 def test_get_all_chats(setup_db, client, account_data, chat_data,  message_data, chat_membership_data):
@@ -125,11 +129,15 @@ def test_get_chat_accounts_by_id_fail(setup_db, client, account_data, chat_data,
     }
 
 def test_create_chat(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
+    token_response = client.post("/auth/token", data={"username": "jamaron", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
     request_data = {
         "name": "gamers3",
         "owner_id": 1,
     }
-    response = client.post("/chats", json=request_data)
+    response = client.post("/chats", json=request_data, headers = headers)
     assert response.status_code == 201
     assert response.json() == {
         "id": 3,
@@ -142,19 +150,29 @@ def test_create_chat_account_fail(setup_db, client, account_data, chat_data, mes
         "name": "gamers3",
         "owner_id": 14,
     }
-    response = client.post("/chats", json=request_data)
-    assert response.status_code == 404
+    token_response = client.post("/auth/token", data={"username": "jamaron", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    response = client.post("/chats", json=request_data, headers=headers)
+    assert response.status_code == 403
     assert response.json() == {
-        "error": "entity_not_found",
-        "message": "Unable to find account with id=14"
+        "error": "access_denied",
+        "message": "Cannot create chat on behalf of different account"
     }
 
 def test_create_chat_duplicate_name_fail(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
+    token_response = client.post("/auth/token", data={"username": "jamaron", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
     request_data = {
         "name": "gamers",
         "owner_id": 1,
     }
-    response = client.post("/chats", json=request_data)
+    response = client.post("/chats", json=request_data, headers=headers)
     assert response.status_code == 422
     assert response.json() == {
         "error": "duplicate_entity_value",
@@ -233,11 +251,16 @@ def test_delete_chat_does_not_exist_fail(setup_db, client, account_data, chat_da
     }
 
 def test_add_message_to_chat(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
+    token_response = client.post("/auth/token", data={"username": "jamaron", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
     request_data = {
         "text": "LoL kinda fun ngl",
         "account_id": 1
     }
-    response = client.post("/chats/1/messages", json=request_data)
+    response = client.post("/chats/1/messages", json=request_data, headers=headers)
     assert response.status_code == 201
     server_response = response.json()
     assert server_response["id"] == 4
@@ -246,11 +269,16 @@ def test_add_message_to_chat(setup_db, client, account_data, chat_data, message_
     assert server_response["chat_id"] == 1
 
 def test_add_message_chat_does_not_exist(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
+    token_response = client.post("/auth/token", data={"username": "jamaron", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
     request_data = {
         "text": "testing",
         "account_id": 1
     }
-    response = client.post("/chats/8/messages", json=request_data)
+    response = client.post("/chats/8/messages", json=request_data, headers = headers)
     assert response.status_code == 404
     assert response.json() == {
         "error": "entity_not_found",
@@ -258,11 +286,16 @@ def test_add_message_chat_does_not_exist(setup_db, client, account_data, chat_da
     }
 
 def test_add_message_account_not_part_of_chat(setup_db, client, account_data, message_data, chat_membership_data):
+    token_response = client.post("/auth/token", data={"username": "jamaron", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
     request_data = {
         "text": "testing",
         "account_id": 1
     }
-    response = client.post("/chats/2/messages", json=request_data)
+    response = client.post("/chats/2/messages", json=request_data, headers=headers)
     assert response.status_code == 422
     assert response.json() == {
         "error": "chat_membership_required",

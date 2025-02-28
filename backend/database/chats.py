@@ -1,3 +1,5 @@
+from typing import Optional
+
 from sqlmodel import Session, select
 
 from backend.database.schema import DBChat, DBMessage, DBChatMembership, DBAccount
@@ -11,7 +13,7 @@ def get_all(session: Session) -> list[DBChat]:
     return list(results)
 
 def get_by_id(session: Session, chat_id: int) -> DBChat:
-    chat = session.get(DBChat, chat_id).first()
+    chat = session.get(DBChat, chat_id)
     if chat is None:
         raise EntityNotFound("chat", chat_id)
     return chat
@@ -173,5 +175,5 @@ def _validate_chat_exists(session: Session, chat_name: str) -> DBChat:
 
 def _validate_chat_exists_by_id(session: Session, chat_id: int) -> DBChat:
     stmt = select(DBChat).where(DBChat.id == chat_id)
-    result = session.exec(stmt).first()
+    result = session.exec(stmt)
     return result
