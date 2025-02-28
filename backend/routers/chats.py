@@ -85,10 +85,14 @@ def chat_accounts(session: DBSession, chat_id: int) -> dict[str, dict[str, int] 
                        422:{
                            "model": Err,
                            "description": "Chat name already exists"
+                       },
+                       403:{
+                           "model": Err,
+                           "description": "User not authenticated"
                        }
                    })
 def create_chat(chat: ChatCreate, session: DBSession, user: Annotated[DBAccount, Depends(get_current_user)]) -> DBChat:
-    return chats_db.create_chat(session, chat, user) ## still need to update db function to check id
+    return chats_db.create_chat(session, chat, user)
 
 
 @chats_router.put("/{chat_id}",

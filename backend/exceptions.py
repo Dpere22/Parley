@@ -83,3 +83,14 @@ class NotAuthenticatedExpiredToken(Exception):
             status_code = self.status_code,
             content = Err(error = "expired_access_token", message = self.message).model_dump()
         )
+
+class AccessDeniedException(Exception):
+    def __init__(self):
+        self.status_code = 403
+        self.error = "Access Denied"
+        self.message = "Cannot create chat on behalf of different account"
+    def response(self) -> Response:
+        return JSONResponse(
+            status_code = self.status_code,
+            content = Err(error = "access_denied", message = self.message).model_dump()
+        )

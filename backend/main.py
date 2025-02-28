@@ -59,6 +59,10 @@ def handle_not_authenticated(request: Request, exc: NotAuthenticatedNoToken):
 def handle_not_authenticated_expired(request: Request, exc: NotAuthenticatedExpiredToken):
     return exc.response()
 
+@app.exception_handler(AccessDeniedException)
+def handle_access_denied(request: Request, exc: AccessDeniedException):
+    return exc.response()
+
 
 for router in [accounts_router, chats_router, auth_router]:
     app.include_router(router)

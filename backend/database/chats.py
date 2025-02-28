@@ -30,6 +30,8 @@ def create_chat(session: Session, chat: ChatCreate, user: DBAccount) -> DBChat:
     chat_name = chat.name
     owner_id = chat.owner_id
     owner = _validate_user_exists(session, owner_id)
+    if owner_id != user.id:
+        raise AccessDeniedException
     if owner is None:
         raise EntityNotFound("account", owner_id)
     if _validate_chat_exists(session, chat_name) is not None:
