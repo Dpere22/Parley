@@ -94,3 +94,14 @@ class AccessDeniedException(Exception):
             status_code = self.status_code,
             content = Err(error = "access_denied", message = self.message).model_dump()
         )
+
+class InvalidTokenException(Exception):
+    def __init__(self):
+        self.status_code = 403
+        self.error = "Invalid Token"
+        self.message = "Authentication failed: invalid access token"
+    def response(self) -> Response:
+        return JSONResponse(
+            status_code = self.status_code,
+            content = Err(error = "invalid_access_token", message = self.message).model_dump()
+        )

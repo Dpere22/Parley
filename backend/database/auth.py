@@ -95,7 +95,7 @@ def extract_user(session: Session, token:str) -> DBAccount:
     except ExpiredSignatureError:
         raise NotAuthenticatedExpiredToken
     except Exception:
-        raise InvalidCredentials()
+        raise InvalidTokenException()
 
 
 
