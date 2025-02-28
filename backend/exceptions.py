@@ -85,10 +85,10 @@ class NotAuthenticatedExpiredToken(Exception):
         )
 
 class AccessDeniedException(Exception):
-    def __init__(self):
+    def __init__(self, entity: str):
         self.status_code = 403
         self.error = "Access Denied"
-        self.message = "Cannot create chat on behalf of different account"
+        self.message = f"Cannot create {entity} on behalf of different account"
     def response(self) -> Response:
         return JSONResponse(
             status_code = self.status_code,

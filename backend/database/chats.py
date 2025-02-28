@@ -33,7 +33,7 @@ def create_chat(session: Session, chat: ChatCreate, user: DBAccount) -> DBChat:
     owner_id = chat.owner_id
     owner = _validate_user_exists(session, owner_id)
     if owner_id != user.id:
-        raise AccessDeniedException
+        raise AccessDeniedException("chat")
     if owner is None:
         raise EntityNotFound("account", owner_id)
     if _validate_chat_exists(session, chat_name) is not None:
@@ -79,7 +79,7 @@ def delete_chat(session: Session, chat_id: int):
 
 def add_chat_message(session: Session, chat_id: int, message: CreateMessage, user: DBAccount) -> DBMessage:
     chat = get_by_id(session, chat_id)
-    if message.account_id != user.id: raise AccessDeniedException
+    if message.account_id != user.id: raise AccessDeniedException("message")
     account = _validate_user_in_chat(session, chat_id, message.account_id)
     db_message = DBMessage(
         text=message.text,
