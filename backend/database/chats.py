@@ -56,7 +56,7 @@ def update_chat(session: Session, chat_id: int, update: ChatUpdate) -> DBChat:
     chat = get_by_id(session, chat_id)
     ## Logic for updating chat name if necessary
     if update.name is not None:
-        if _validate_chat_exists(session, update.name) is not None:
+        if _validate_chat_exists(session, update.name) is not None and chat.name != update.name:
             raise DuplicateEntityValue("chat", "name", update.name)
         chat.name = update.name
     ## Logic for updating owner id if necessary
