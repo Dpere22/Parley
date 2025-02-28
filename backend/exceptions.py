@@ -66,7 +66,7 @@ class NotAuthenticatedNoToken(Exception):
     def __init__(self):
         self.status_code = 403
         self.error = "Not authenticated"
-        self.message = "Not Authenticated"
+        self.message = "Not authenticated"
     def response(self) -> Response:
         return JSONResponse(
             status_code = self.status_code,
