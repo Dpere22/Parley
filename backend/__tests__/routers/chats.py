@@ -108,7 +108,15 @@ def test_create_chat(setup_db, client, account_data, chat_data, message_data, ch
         "owner_id": 1
     }
 
-def test_create_chat_account_fail(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
+def test_create_chat_not_authenticated(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
+    request_data = {
+        "name": "gamers3",
+        "owner_id": 14,
+    }
+    response = client.post("/chats", json =request_data)
+    assert response.status_code == 403
+
+def test_create_chat_account_not_owner(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
     request_data = {
         "name": "gamers3",
         "owner_id": 14,
@@ -231,17 +239,12 @@ def test_add_message_to_chat(setup_db, client, account_data, chat_data, message_
     assert server_response["account_id"] == 1
     assert server_response["chat_id"] == 1
 
-def test_add_message_chat_does_not_exist(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
-    token_response = client.post("/auth/token", data={"username": "jamaron", "password": "password"})
-    assert token_response.status_code == 200
-    token = token_response.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-
+def test_add_message_chat_does_not_exist(setup_db, client, account_data, chat_data, message_data, chat_membership_data, authenticated_headers):
     request_data = {
         "text": "testing",
         "account_id": 1
     }
-    response = client.post("/chats/8/messages", json=request_data, headers = headers)
+    response = client.post("/chats/8/messages", json=request_data, headers = authenticated_headers)
     assert response.status_code == 404
     assert response.json() == {
         "error": "entity_not_found",
@@ -264,6 +267,36 @@ def test_add_message_account_not_part_of_chat(setup_db, client, account_data, me
         "error": "chat_membership_required",
         "message": "Account with id=1 must be a member of chat with id=2"
     }
+
+def test_add_message_account_mismatch(setup_db, client, account_data, message_data, chat_membership_data):
+    token_response = client.post("/auth/token", data={"username": "jamaron", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    request_data = {
+        "text": "testing",
+        "account_id": 2
+    }
+    response = client.post("/chats/1/messages", json=request_data, headers=headers)
+    assert response.status_code == 403
+    assert response.json() == {
+        "error": "access_denied",
+        "message": "Cannot create message on behalf of different account"
+    }
+
+def test_add_message_not_authenticated(setup_db, client, account_data, message_data, chat_membership_data):
+    request_data = {
+        "text": "testing",
+        "account_id": 1
+    }
+    response = client.post("/chats/1/messages", json=request_data)
+    assert response.status_code == 403
+    assert response.json() == {
+        "error": "authentication_required",
+        "message": "Not authenticated"
+    }
+
 
 def test_update_message_text(setup_db, client, account_data, message_data, chat_membership_data):
     request_data = {

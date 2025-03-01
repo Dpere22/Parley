@@ -1,22 +1,5 @@
 import re
 
-def test_add_message_chat_does_not_exist(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
-    token_response = client.post("/auth/token", data={"username": "jamaron", "password": "password"})
-    assert token_response.status_code == 200
-    token = token_response.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-
-    request_data = {
-        "text": "testing",
-        "account_id": 1
-    }
-    response = client.post("/chats/8/messages", json=request_data, headers = headers)
-    assert response.status_code == 404
-    assert response.json() == {
-        "error": "entity_not_found",
-        "message": "Unable to find chat with id=8"
-    }
-
 def test_registration(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
     data = {
         "username": "TEST",

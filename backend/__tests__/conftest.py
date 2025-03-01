@@ -1,4 +1,7 @@
+from typing import Dict
+
 import pytest
+from anyio.pytest_plugin import pytest_fixture_setup
 from sqlmodel import Session, StaticPool, create_engine
 from starlette.testclient import TestClient
 
@@ -87,4 +90,13 @@ def client(session, monkeypatch):
     app.dependency_overrides[get_session] = _get_session_override
     yield TestClient(app)
     app.dependency_overrides.clear()
+
+@pytest.fixture
+def authenticated_headers(client) -> Dict[str, str]:
+    token_response = client.post("/auth/token", data={"username": "loldleman", "password": "password"})
+    assert token_response.status_code == 200
+    token = token_response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
 
