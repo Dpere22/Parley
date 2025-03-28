@@ -8,6 +8,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.requests import Request
+from fastapi.middleware.cors import CORSMiddleware
 
 from backend.dependencies import create_db_tables
 
@@ -29,6 +30,14 @@ app = FastAPI(
     title="PonyExpress Backend",
     summary="Get info from database",
     lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+    allow_credentials=True,
 )
 
 @app.exception_handler(EntityNotFound)
