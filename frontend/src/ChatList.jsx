@@ -13,7 +13,7 @@ function ChatItem({id, name}){
             to={`/chats/${id}`}
             className={({ isActive }) =>
                 `block p-4 border-b last:border-none ${
-                    isActive ? 'bg-purple-600 text-white' : 'bg-white text-black hover:bg-gray-100'
+                    isActive ? 'bg-pink-300 text-white' : 'bg-white text-black hover:bg-gray-100'
                 }`
             }
         >
@@ -27,10 +27,15 @@ export default function ChatList(){
     const { chats } = useChats();
 
     return (
-        <ul>
-            {chats.map((chat) => (
-                <ChatItem key={chat.id} {...chat} />
-            ))}
-        </ul>
+        <div>
+            <div className={"flex justify-center bg-pink-800 pb-2"}>
+                <NavLink to={'/chats'} className={"text-xl text-white"}>Pony Express</NavLink>
+            </div>
+            <ul>
+                {chats.map((chat) => (
+                    <ChatItem key={chat.id} {...chat} />
+                ))}
+            </ul>
+        </div>
     )
 }

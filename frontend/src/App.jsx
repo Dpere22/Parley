@@ -21,7 +21,9 @@ function Home() {
 
 function Chats(){
     return (
-        <ChatList />
+        <div className = {"w-1/4"}>
+            <ChatList />
+        </div>
     )
 }
 
@@ -30,7 +32,6 @@ function Chat(){
     return (
         <div className={"flex"}>
             <div className={"w-1/4 border-r border-gray-300"}>
-                <h1>Pony Express</h1>
                 <ChatList />
             </div>
             <div className={"w-3/4 pr-4 pl-4 bg-white"}>
@@ -47,7 +48,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="*" element={<NotFound />} />
-            <Route path={"/chats/"} element={<Chats />} />
+            <Route path={"/chats"} element={<Chats />} />
             <Route path={"/chats/:id"} element={<Chat />} />
         </Routes>
       </BrowserRouter>

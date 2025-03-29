@@ -52,7 +52,7 @@ export default function MessageList({chat_id}){
     }, {});
 
     return (
-        <ul ref={containerRef} className={"h-screen overflow-y-scroll"}>
+        <ul ref={containerRef} className={"h-screen overflow-y-scroll scroll-smooth"}>
             {messageList.map((message) => (
                 <MessageItem key={message.id} msg={message} usernameMap={usernameMap} />
             ))}
