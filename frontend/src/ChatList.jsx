@@ -1,4 +1,4 @@
-import { Link } from "react-router"
+import { NavLink } from "react-router"
 import {useChats} from "./queries.js"
 import PropTypes from "prop-types"
 
@@ -8,12 +8,18 @@ ChatItem.propTypes = {
 };
 
 function ChatItem({id, name}){
-    let link = <Link to={`/chats/${id}`}>{name}</Link>
-    if (id === -1){
-        link = <p>{name}</p>
-    }
-
-    return <li className="hover:bg-green-600"> {link} </li>
+    return (
+        <NavLink
+            to={`/chats/${id}`}
+            className={({ isActive }) =>
+                `block p-4 border-b last:border-none ${
+                    isActive ? 'bg-purple-600 text-white' : 'bg-white text-black hover:bg-gray-100'
+                }`
+            }
+        >
+            {name}
+        </NavLink>
+    );
 }
 
 
@@ -21,7 +27,7 @@ export default function ChatList(){
     const { chats } = useChats();
 
     return (
-        <ul className= "max-h-96 overflow-y-scroll">
+        <ul>
             {chats.map((chat) => (
                 <ChatItem key={chat.id} {...chat} />
             ))}

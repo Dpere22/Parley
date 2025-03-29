@@ -28,8 +28,16 @@ function Chats(){
 function Chat(){
     const {id}= useParams();
     return (
-        <MessageList chat_id={id}/>
-    )
+        <div className={"flex"}>
+            <div className={"w-1/4 border-r border-gray-300"}>
+                <h1>Pony Express</h1>
+                <ChatList />
+            </div>
+            <div className={"w-3/4 pr-4 pl-4 bg-white"}>
+                <MessageList chat_id={id}/>
+            </div>
+        </div>
+    );
 }
 
 function App() {
