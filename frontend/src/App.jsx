@@ -1,5 +1,7 @@
-import { BrowserRouter, Routes, Route } from "react-router";
+import {BrowserRouter, Routes, Route, useParams} from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import ChatList from "./ChatList.jsx";
+import MessageList from "./Chat.jsx";
 
 const headerClassName = "text-center text-4xl font-extrabold py-4";
 
@@ -10,7 +12,24 @@ function NotFound() {
 }
 
 function Home() {
-  return <h1 className={headerClassName}>Pony Express</h1>;
+  return (
+      <div>
+        <h1 className={headerClassName}>Pony Express</h1>
+      </div>
+  );
+}
+
+function Chats(){
+    return (
+        <ChatList />
+    )
+}
+
+function Chat(){
+    const {id}= useParams();
+    return (
+        <MessageList chat_id={id}/>
+    )
 }
 
 function App() {
@@ -20,6 +39,8 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="*" element={<NotFound />} />
+            <Route path={"/chats/"} element={<Chats />} />
+            <Route path={"/chats/:id"} element={<Chat />} />
         </Routes>
       </BrowserRouter>
     </QueryClientProvider>
