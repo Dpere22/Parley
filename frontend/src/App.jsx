@@ -2,6 +2,9 @@ import {BrowserRouter, Routes, Route, useParams} from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ChatList from "./ChatList.jsx";
 import MessageList from "./Chat.jsx";
+import AuthProvider from "./providers/AuthProvider.jsx";
+import {useAuth} from "./hooks.js";
+import Login from "./accounts/Login.jsx";
 
 const headerClassName = "text-center text-4xl font-extrabold py-4";
 
@@ -12,11 +15,18 @@ function NotFound() {
 }
 
 function Home() {
-  return (
-      <div>
-        <h1 className={headerClassName}>Pony Express</h1>
-      </div>
-  );
+    const {loggedIn} = useAuth();
+    if (!loggedIn) {
+        return <Login />;
+    }
+    else{
+        return (
+            <div>
+                <h1 className={headerClassName}>Pony Express</h1>
+            </div>
+        );
+    }
+
 }
 
 function Chats(){
@@ -44,14 +54,17 @@ function Chat(){
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+        <AuthProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
+            <Route path={"/login"} element={<Home />}/>
           <Route path="*" element={<NotFound />} />
             <Route path={"/chats"} element={<Chats />} />
             <Route path={"/chats/:id"} element={<Chat />} />
         </Routes>
       </BrowserRouter>
+        </AuthProvider>
     </QueryClientProvider>
   );
 }

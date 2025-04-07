@@ -1,4 +1,5 @@
 import {useQuery} from "@tanstack/react-query";
+import { useAuth } from "./hooks";
 import api from "./api.js";
 
 const nullChat = {
@@ -52,3 +53,19 @@ export const useChatAccounts = (id) => {
     const accounts = isLoading ? [nullAccount] : data?.accounts || [];
     return {accounts, error};
 }
+
+export const useAccount = () => {
+    const { headers, loggedIn, logout } = useAuth();
+    const { data, error } = useQuery({
+        queryKey: ["account"],
+        queryFn: () => api.get("/accounts/me", headers),
+        enabled: loggedIn,
+    });
+
+    if (error?.code === "invalid_credentials") {
+        logout();
+    }
+
+    const account = data || nullAccount;
+    return { account, error };
+};

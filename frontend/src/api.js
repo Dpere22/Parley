@@ -31,6 +31,18 @@ const get = async (url, headers) => {
     return await handleResponse(response);
 }
 
+const put = async (url, headers, data) => {
+    const response = await fetch(baseUrl + url, {
+        headers: {
+            ...headers,
+            "Content-Type": "application/json",
+        },
+        method: "PUT",
+        body: JSON.stringify(data),
+    });
+    return await handleResponse(response);
+};
+
 const post = async (url, headers, data) => {
     const response = await fetch(baseUrl + url, {
         headers,
@@ -40,16 +52,28 @@ const post = async (url, headers, data) => {
     return await handleResponse(response);
 };
 
-const form = async(url, headers, data) => {
+const putForm = async (url, headers, data) => {
+    const response = await fetch(baseUrl + url, {
+        headers: {
+            ...headers,
+            "Content-Type": "application/x-www-form-urlencoded",
+        },
+        method: "PUT",
+        body: new URLSearchParams(data),
+    });
+    return await handleResponse(response);
+};
+
+const postForm = async (url, headers, data) => {
     const response = await fetch(baseUrl + url, {
         headers: {
             ...headers,
             "Content-Type": "application/x-www-form-urlencoded",
         },
         method: "POST",
-        body: new URLSearchParams(data)
+        body: new URLSearchParams(data),
     });
     return await handleResponse(response);
 };
 
-export default {get, post, form}
+export default { get, post, postForm, put, putForm };
