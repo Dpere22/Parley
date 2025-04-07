@@ -13,7 +13,7 @@ export default function AuthProvider({ children }) {
         localStorage.setItem(tokenKey, token);
     };
     const logout = () => {
-        setToken(token);
+        setToken(null);
         localStorage.removeItem(tokenKey);
     };
 

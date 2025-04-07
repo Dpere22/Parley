@@ -1,7 +1,7 @@
 import PropTypes from "prop-types";
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Navigate } from "react-router";
+import {Link, Navigate} from "react-router";
 import Form from "../components/Form";
 import FormInput from "../components/FormInput";
 import FormButton from "../components/FormButton";
@@ -64,6 +64,7 @@ export default function Login() {
             />
             {errorMsg && <Error message={errorMsg} />}
             <FormButton text="login" disabled={buttonDisabled} />
+            <Link to="/register">Register</Link>
         </Form>
     );
 }

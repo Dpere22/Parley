@@ -1,10 +1,12 @@
-import {BrowserRouter, Routes, Route, useParams} from "react-router";
+import {BrowserRouter, Routes, Route, useParams, useNavigate} from "react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import ChatList from "./ChatList.jsx";
 import MessageList from "./Chat.jsx";
 import AuthProvider from "./providers/AuthProvider.jsx";
 import {useAuth} from "./hooks.js";
 import Login from "./accounts/Login.jsx";
+import Profile from "./accounts/Profile.jsx";
+import Register from "./accounts/Register.jsx";
 
 const headerClassName = "text-center text-4xl font-extrabold py-4";
 
@@ -16,9 +18,11 @@ function NotFound() {
 
 function Home() {
     const {loggedIn} = useAuth();
-    if (!loggedIn) {
+
+    if(!loggedIn){
         return <Login />;
     }
+
     else{
         return (
             <div>
@@ -58,7 +62,9 @@ function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Home />} />
-            <Route path={"/login"} element={<Home />}/>
+            <Route path={"/login"} element={<Login />}/>
+            <Route path={"/register"} element={<Register />}/>
+            <Route path={"/settings"} element={<Profile />}/>
           <Route path="*" element={<NotFound />} />
             <Route path={"/chats"} element={<Chats />} />
             <Route path={"/chats/:id"} element={<Chat />} />

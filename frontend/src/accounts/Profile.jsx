@@ -1,13 +1,16 @@
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Navigate } from "react-router";
+import {Navigate, useNavigate} from "react-router";
 import { useAuth } from "../hooks";
 import { useAccount } from "../queries";
 import Form from "../components/Form";
 import FormInput from "../components/FormInput";
 import FormButton from "../components/FormButton";
 import api from "../api";
+
+
+
 
 function UpdateForm() {
     const queryClient = useQueryClient();
@@ -59,12 +62,19 @@ function UpdateForm() {
     );
 }
 
+
 function LogoutButton() {
+    const queryClient2 = useQueryClient();
     const { logout } = useAuth();
+    const navigate = useNavigate();
+    const handleLogout = () =>{
+        logout();
+        queryClient2.invalidateQueries().then(() => navigate('/login'));
+    };
 
     return (
         <button
-            onClick={logout}
+            onClick={handleLogout}
             className="cursor-pointer border border-lime-700 rounded p-2"
         >
             logout
@@ -91,7 +101,7 @@ function Success({ message }) {
 
 export default function Profile() {
     const { loggedIn } = useAuth();
-    //const { account } = useAccount();
+    const { account } = useAccount();
 
     if (!loggedIn) {
         return <Navigate to="/" />;
