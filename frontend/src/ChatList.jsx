@@ -1,6 +1,7 @@
-import { NavLink } from "react-router"
-import {useChats} from "./queries.js"
+import {NavLink, useNavigate} from "react-router"
+import {useAccount, useChats} from "./queries.js"
 import PropTypes from "prop-types"
+import {useAuth} from "./hooks.js";
 
 ChatItem.propTypes = {
     id: PropTypes.number,
@@ -25,12 +26,41 @@ function ChatItem({id, name}){
 
 export default function ChatList(){
     const { chats } = useChats();
+    const { account } = useAccount();
+    const navigate = useNavigate();
+    const { logout } = useAuth();
+
+    const handleLogout = () => {
+        logout(); // clear token, auth state, etc.
+        navigate("/login"); // redirect after logout
+    };
 
     return (
         <div>
             <div className={"flex justify-center bg-pink-800 pb-2"}>
                 <NavLink to={'/chats'} className={"text-xl text-white"}>Pony Express</NavLink>
             </div>
+            <h1>{account.username}</h1>
+            <ul>
+                <li>
+                    <NavLink to={`/settings`} className={({ isActive }) =>
+                        `block p-4 border-b last:border-none ${
+                            isActive ? 'bg-pink-300 text-white' : 'bg-white text-black hover:bg-gray-100'
+                        }`
+                    }>
+                        Settings
+                    </NavLink>
+                </li>
+                <li>
+                    <button
+                        onClick={handleLogout}
+                        className="block w-full p-4 border-b last:border-none text-left bg-white text-black hover:bg-gray-100"
+                    >
+                        Logout
+                    </button>
+                </li>
+            </ul>
+            <h1>Chats</h1>
             <ul>
                 {chats.map((chat) => (
                     <ChatItem key={chat.id} {...chat} />

@@ -7,6 +7,7 @@ import {useAuth} from "./hooks.js";
 import Login from "./accounts/Login.jsx";
 import Profile from "./accounts/Profile.jsx";
 import Register from "./accounts/Register.jsx";
+import { Navigate } from "react-router"
 
 const headerClassName = "text-center text-4xl font-extrabold py-4";
 
@@ -24,16 +25,17 @@ function Home() {
     }
 
     else{
-        return (
-            <div>
-                <h1 className={headerClassName}>Pony Express</h1>
-            </div>
-        );
+        return <Navigate to={"/chats"} />
     }
 
 }
 
 function Chats(){
+    const { loggedIn } = useAuth();
+
+    if (!loggedIn) {
+        return <Navigate to="/" />;
+    }
     return (
         <div className = {"w-1/4"}>
             <ChatList />
@@ -42,6 +44,11 @@ function Chats(){
 }
 
 function Chat(){
+    const { loggedIn } = useAuth();
+
+    if (!loggedIn) {
+        return <Navigate to="/" />;
+    }
     const {id}= useParams();
     return (
         <div className={"flex"}>

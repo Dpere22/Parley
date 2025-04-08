@@ -43,9 +43,9 @@ function UpdateForm() {
     };
 
     return (
-        <section className="border border-violet-700 rounded p-4">
-            <h1 className="text-xl font-bold text-center">update account</h1>
+        <section>
             <Form onSubmit={handleSubmit}>
+                <h1 className="text-xl font-bold text-center">update account</h1>
                 <FormInput
                     id="username"
                     type="text"
@@ -62,6 +62,80 @@ function UpdateForm() {
     );
 }
 
+function UpdatePasswordForm(){
+    const [new_password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
+    const [old_password, setOldPassword] = useState("");
+    const [disabled, setDisabled] = useState(false);
+    const [errorMsg, setErrorMsg] = useState("");
+    const [successMsg, setSuccessMsg] = useState("");
+    const { headers } = useAuth();
+
+    const mutation = useMutation({
+        mutationFn: () => api.putForm("/accounts/me/password", headers, { old_password, new_password }),
+        onMutate: () => setDisabled(true),
+        onSuccess: () => setSuccessMsg("password updated!"),
+        onError: (error) => {
+            setDisabled(false);
+            setErrorMsg(error.message);
+        },
+    });
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if(new_password !== confirmPassword){
+            setErrorMsg("Passwords do not match");
+            return;
+        }
+        mutation.mutate();
+    };
+
+    const buttonDisabled = !new_password || !confirmPassword || disabled;
+
+    return (
+        <Form onSubmit={handleSubmit}>
+            <h1 className="text-xl font-bold text-center">update password</h1>
+            <FormInput
+                id="old_password"
+                type="password"
+                name="old_password"
+                text="current password"
+                value={old_password}
+                setValue={setOldPassword}
+            />
+            <FormInput
+                id="new_password"
+                type="password"
+                name="new_password"
+                text="new password"
+                value={new_password}
+                setValue={setPassword}
+            />
+            <FormInput
+                id="confirmPassword"
+                type="password"
+                name="confirmPassword"
+                text="confirm new password"
+                value={confirmPassword}
+                setValue={setConfirmPassword}
+            />
+            {errorMsg && <Error message={errorMsg} />}
+            {successMsg}
+            <FormButton text="Register" disabled={buttonDisabled} />
+        </Form>
+    )
+}
+
+function AccountButtons(){
+    return(
+        <div className="flex flex-col border border-lime-700 rounded space-y-4 w-96 mx-auto p-4">
+            <h1 className="text-xl font-bold text-center">account</h1>
+            <LogoutButton />
+            <DeleteAccountButton />
+        </div>
+    )
+}
+
 
 function LogoutButton() {
     const queryClient2 = useQueryClient();
@@ -73,20 +147,54 @@ function LogoutButton() {
     };
 
     return (
+        <div>
         <button
             onClick={handleLogout}
             className="cursor-pointer border border-lime-700 rounded p-2"
         >
             logout
         </button>
+        </div>
     );
 }
 
+function DeleteAccountButton() {
+    const navigate = useNavigate();
+    const queryClient = useQueryClient();
+    const { headers, logout } = useAuth();
+    const [errorMsg, setErrorMsg] = useState("");
+    const mutation = useMutation({
+        mutationFn: () => api.del("/accounts/me", headers),
+        onSuccess: () => {
+            logout();
+            queryClient.invalidateQueries().then(() => navigate('/login'));
+        },
+        onError: (error) => {
+            setErrorMsg(error.message);
+        },
+    });
+
+    return (
+        <div>
+        <button
+            onClick={mutation.mutate}
+            className="cursor-pointer border border-lime-700 rounded p-2"
+        >
+            delete account
+        </button>
+        {errorMsg && <Error message={errorMsg} />}
+        </div>
+    );
+
+}
+
 function Account() {
+
     return (
         <section className="justify-self-center space-y-4">
             <UpdateForm />
-            <LogoutButton />
+            <UpdatePasswordForm />
+            <AccountButtons />
         </section>
     );
 }
@@ -101,7 +209,6 @@ function Success({ message }) {
 
 export default function Profile() {
     const { loggedIn } = useAuth();
-    const { account } = useAccount();
 
     if (!loggedIn) {
         return <Navigate to="/" />;

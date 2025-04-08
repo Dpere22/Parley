@@ -1,3 +1,5 @@
+import {data} from "react-router";
+
 class ApiError extends Error{
     constructor(status, {error, message}) {
         super(message);
@@ -52,6 +54,14 @@ const post = async (url, headers, data) => {
     return await handleResponse(response);
 };
 
+const del = async (url, headers) => {
+    const response = await fetch(baseUrl + url, {
+        headers,
+        method: "DELETE"
+    });
+    return await handleResponse(response);
+}
+
 const putForm = async (url, headers, data) => {
     const response = await fetch(baseUrl + url, {
         headers: {
@@ -76,4 +86,4 @@ const postForm = async (url, headers, data) => {
     return await handleResponse(response);
 };
 
-export default { get, post, postForm, put, putForm };
+export default { get, post, postForm, put, putForm, del};

@@ -7,6 +7,7 @@ import Form from "../components/Form.jsx";
 import FormInput from "../components/FormInput.jsx";
 import FormButton from "../components/FormButton.jsx";
 import PropTypes from "prop-types";
+import Login from "./Login.jsx";
 
 function Error({ message }) {
     return <p className="text-amber-800 text-sm">{message}</p>;
