@@ -8,6 +8,7 @@ import Form from "../components/Form";
 import FormInput from "../components/FormInput";
 import FormButton from "../components/FormButton";
 import api from "../api";
+import ChatList from "../ChatList.jsx";
 
 
 
@@ -17,6 +18,7 @@ function UpdateForm() {
     const { account } = useAccount();
     const { headers } = useAuth();
     const [username, setUsername] = useState("");
+    const [email, setEmail] = useState("");
     const [errorMsg, setErrorMsg] = useState(null);
     const [successMsg, setSuccessMsg] = useState(null);
 
@@ -24,12 +26,16 @@ function UpdateForm() {
         setUsername(account.username);
     }, [account]);
 
+    useEffect(() => {
+        setEmail(account.email);
+    }, [account]);
+
     const mutation = useMutation({
-        mutationFn: () => api.put("/accounts/me", headers, { username }),
+        mutationFn: () => api.put("/accounts/me", headers, { username, email }),
         onSuccess: (data) => {
             queryClient.setQueryData(["account"], data);
             setErrorMsg(null);
-            setSuccessMsg("username updated!!");
+            setSuccessMsg("account updated!!");
         },
         onError: (error) => {
             setErrorMsg(error.message);
@@ -54,7 +60,15 @@ function UpdateForm() {
                     value={username}
                     setValue={setUsername}
                 />
-                <FormButton text="update username" />
+                <FormInput
+                    id="email"
+                    type="email"
+                    text="email"
+                    name="email"
+                    value={email}
+                    setValue={setEmail}
+                />
+                <FormButton text="update account" />
                 {errorMsg && <Error message={errorMsg} />}
                 {successMsg && <Success message={successMsg} />}
             </Form>
@@ -74,10 +88,15 @@ function UpdatePasswordForm(){
     const mutation = useMutation({
         mutationFn: () => api.putForm("/accounts/me/password", headers, { old_password, new_password }),
         onMutate: () => setDisabled(true),
-        onSuccess: () => setSuccessMsg("password updated!"),
+        onSuccess: () => {
+            setSuccessMsg("password updated!");
+            setDisabled(false);
+            setErrorMsg(null);
+        },
         onError: (error) => {
             setDisabled(false);
             setErrorMsg(error.message);
+            setSuccessMsg(null);
         },
     });
 
@@ -120,8 +139,8 @@ function UpdatePasswordForm(){
                 setValue={setConfirmPassword}
             />
             {errorMsg && <Error message={errorMsg} />}
-            {successMsg}
-            <FormButton text="Register" disabled={buttonDisabled} />
+            {successMsg && <Success message={successMsg} />}
+            <FormButton text="update password" disabled={buttonDisabled} />
         </Form>
     )
 }
@@ -150,7 +169,7 @@ function LogoutButton() {
         <div>
         <button
             onClick={handleLogout}
-            className="cursor-pointer border border-lime-700 rounded p-2"
+            className="cursor-pointer border border-lime-700 rounded p-2 hover:bg-red-400"
         >
             logout
         </button>
@@ -178,7 +197,7 @@ function DeleteAccountButton() {
         <div>
         <button
             onClick={mutation.mutate}
-            className="cursor-pointer border border-lime-700 rounded p-2"
+            className="cursor-pointer border border-lime-700 rounded p-2 hover:bg-red-600"
         >
             delete account
         </button>
@@ -215,7 +234,14 @@ export default function Profile() {
     }
 
     return (
-            <Account />
+        <div className={"flex"}>
+            <div className={"w-1/4 border-r border-gray-300"}>
+                <ChatList />
+            </div>
+            <div className={"w-3/4 pr-4 pl-4 pt-4 pb-8 bg-white"}>
+                <Account />
+            </div>
+        </div>
     );
 }
 

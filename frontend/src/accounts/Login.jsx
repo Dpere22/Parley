@@ -16,7 +16,19 @@ Error.propTypes = {
     message: PropTypes.string,
 };
 
-export default function Login() {
+export default function LoginPage(){
+    return(
+        <div className={"pt-4"}>
+            <h1 className={"text-center font-extrabold text-4xl pb-2"}>Pony Express</h1>
+            <div className={"pt-4"}>
+                <Login />
+            </div>
+        </div>
+    )
+}
+
+
+function Login() {
     const { loggedIn, login } = useAuth();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");

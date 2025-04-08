@@ -1,7 +1,7 @@
-export default function Form({ onSubmit, children, ...options }) {
+export default function Form({ onSubmit, children}) {
     const className = [
         "flex flex-col",
-        "border border-lime-700 rounded",
+        "border border-black rounded",
         "space-y-4 w-96 mx-auto p-4",
     ].join(" ");
     return (
@@ -10,3 +10,4 @@ export default function Form({ onSubmit, children, ...options }) {
         </form>
     );
 }
+

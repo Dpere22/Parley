@@ -37,12 +37,12 @@ def check_email_available(session: Session, email: str) -> bool:
 
 def update_account(update: AccountUpdate, user: DBAccount, session: Session) -> DBAccount:
     if update.username is not None:
-        if check_username_available(session, update.username):
+        if check_username_available(session, update.username) or user.username == update.username:
             user.username = update.username
         else:
             raise DuplicateEntityValue("account", "username", update.username)
     if update.email is not None:
-        if check_email_available(session, update.email):
+        if check_email_available(session, update.email) or user.email == update.email:
             user.email = update.email
         else:
             raise DuplicateEntityValue("account", "email", update.email)
