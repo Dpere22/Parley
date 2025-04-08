@@ -147,7 +147,7 @@ function UpdatePasswordForm(){
 
 function AccountButtons(){
     return(
-        <div className="flex flex-col border border-lime-700 rounded space-y-4 w-96 mx-auto p-4">
+        <div className="flex flex-col border border-black rounded space-y-4 w-96 mx-auto p-4">
             <h1 className="text-xl font-bold text-center">account</h1>
             <LogoutButton />
             <DeleteAccountButton />
@@ -169,7 +169,7 @@ function LogoutButton() {
         <div>
         <button
             onClick={handleLogout}
-            className="cursor-pointer border border-lime-700 rounded p-2 hover:bg-red-400"
+            className="cursor-pointer border border-black rounded p-2 hover:bg-red-400 w-full"
         >
             logout
         </button>
@@ -197,7 +197,7 @@ function DeleteAccountButton() {
         <div>
         <button
             onClick={mutation.mutate}
-            className="cursor-pointer border border-lime-700 rounded p-2 hover:bg-red-600"
+            className="cursor-pointer border border-red-600 rounded p-2 hover:bg-red-800 w-full"
         >
             delete account
         </button>
