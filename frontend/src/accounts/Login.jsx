@@ -76,7 +76,7 @@ function Login() {
             />
             {errorMsg && <Error message={errorMsg} />}
             <FormButton text="login" disabled={buttonDisabled} />
-            <Link to="/register">Register</Link>
+            <Link to="/register" className={"text-pink-600 underline"}>Register</Link>
         </Form>
     );
 }

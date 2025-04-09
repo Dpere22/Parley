@@ -8,7 +8,7 @@ import Form from "../components/Form";
 import FormInput from "../components/FormInput";
 import FormButton from "../components/FormButton";
 import api from "../api";
-import ChatList from "../ChatList.jsx";
+import NavList from "../NavList.jsx";
 
 
 
@@ -236,9 +236,10 @@ export default function Profile() {
     return (
         <div className={"flex"}>
             <div className={"w-1/4 border-r border-gray-300"}>
-                <ChatList />
+                <NavList />
             </div>
-            <div className={"w-3/4 pr-4 pl-4 pt-4 pb-8 bg-white"}>
+            <div className={"w-3/4 pr-4 pl-4 pt-4 pb-8 bg-white h-screen w-fill"}>
+                <h1 className={"text-3xl font-bold text-center pb-4"}>Settings</h1>
                 <Account />
             </div>
         </div>

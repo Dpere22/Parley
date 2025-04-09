@@ -7,7 +7,6 @@ import Form from "../components/Form.jsx";
 import FormInput from "../components/FormInput.jsx";
 import FormButton from "../components/FormButton.jsx";
 import PropTypes from "prop-types";
-import Login from "./Login.jsx";
 
 function Error({ message }) {
     return <p className="text-amber-800 text-sm">{message}</p>;
@@ -17,7 +16,8 @@ Error.propTypes = {
     message: PropTypes.string,
 };
 
-export default function Register() {
+
+function RegistrationForm(){
     const { loggedIn, login } = useAuth();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -95,7 +95,17 @@ export default function Register() {
             />
             {errorMsg && <Error message={errorMsg} />}
             <FormButton text="Register" disabled={buttonDisabled} />
-            <Link to="/login">Login</Link>
+            <Link to="/login" className={"text-pink-600 underline"}>Login</Link>
         </Form>
     );
+}
+
+
+export default function RegisterPage() {
+    return(
+        <div>
+            <h1 className={"text-center font-extrabold text-4xl pb-4 pt-4"}>Pony Express</h1>
+            <RegistrationForm />
+        </div>
+    )
 }

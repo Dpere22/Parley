@@ -24,7 +24,7 @@ function ChatItem({id, name}){
 }
 
 
-export default function ChatList(){
+export default function NavList(){
     const { chats } = useChats();
     const { account } = useAccount();
     const navigate = useNavigate();
@@ -37,10 +37,10 @@ export default function ChatList(){
 
     return (
         <div>
-            <div className={"flex justify-center bg-pink-800 pb-2"}>
+            <div className={"flex justify-center bg-pink-800 pb-3 pt-3"}>
                 <NavLink to={'/chats'} className={"text-xl text-white"}>Pony Express</NavLink>
             </div>
-            <h1 className={"bg-white text-center text-xl font-bold pt-2 pb-2 border-b border-b-black"}>{account.username}</h1>
+            <h1 className={"bg-gray-400 text-center text-xl font-bold pt-2 pb-2 border-b border-b-black"}>{account.username}</h1>
             <ul>
                 <li>
                     <NavLink to={`/settings`} className={({ isActive }) =>
@@ -60,7 +60,7 @@ export default function ChatList(){
                     </button>
                 </li>
             </ul>
-            <h1 className={"bg-white text-center text-xl font-bold pt-2 pb-2 border-b border-b-black"}>Chats</h1>
+            <h1 className={"bg-gray-400 text-center text-xl font-bold pt-2 pb-2 border-b border-b-black"}>Chats</h1>
             <ul>
                 {chats.map((chat) => (
                     <ChatItem key={chat.id} {...chat} />

@@ -1,6 +1,9 @@
 import {useChatAccounts, useMessages} from "./queries.js"
 import PropTypes from "prop-types"
 import {useEffect, useRef} from "react";
+import {useAuth} from "./hooks.js";
+import {Navigate, useParams} from "react-router";
+import NavList from "./NavList.jsx";
 
 MessageItem.propTypes = {
     msg: PropTypes.shape({
@@ -35,7 +38,7 @@ function MessageItem({ msg, usernameMap }){
     )
 }
 
-export default function MessageList({chat_id}){
+function MessageList({chat_id}){
     const { messageList } = useMessages(chat_id);
     const { accounts } = useChatAccounts(chat_id);
     const containerRef = useRef(null);
@@ -57,5 +60,24 @@ export default function MessageList({chat_id}){
                 <MessageItem key={message.id} msg={message} usernameMap={usernameMap} />
             ))}
         </ul>
+    );
+}
+
+export default function Chat(){
+    const { loggedIn } = useAuth();
+
+    if (!loggedIn) {
+        return <Navigate to="/" />;
+    }
+    const {id}= useParams();
+    return (
+        <div className={"flex"}>
+            <div className={"w-1/4 border-r border-gray-300"}>
+                <NavList />
+            </div>
+            <div className={"w-3/4 pr-4 pl-4 bg-white"}>
+                <MessageList chat_id={id}/>
+            </div>
+        </div>
     );
 }
