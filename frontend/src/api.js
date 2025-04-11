@@ -47,10 +47,14 @@ const put = async (url, headers, data) => {
 
 const post = async (url, headers, data) => {
     const response = await fetch(baseUrl + url, {
-        headers,
+        headers:{
+            ...headers,
+            "Content-Type": "application/json",
+        },
         method: "POST",
         body: JSON.stringify(data)
     });
+    console.log(JSON.stringify(data));
     return await handleResponse(response);
 };
 

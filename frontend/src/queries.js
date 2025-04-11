@@ -37,6 +37,7 @@ export const useMessages = (id) => {
         queryKey: ["chats/chatId/messages", id],
         queryFn: () => api.get("/chats/" + id + "/messages", {}),
         retry: false,
+        refetchInterval: 3000,
     });
 
     const messageList = isLoading ? [nullMessage] : data?.messages || [];
