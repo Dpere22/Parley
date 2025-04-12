@@ -17,26 +17,122 @@ MessageItem.propTypes = {
     }).isRequired,
     usernameMap: PropTypes.object.isRequired,  // Ensure usernameMap is passed as an object
 };
-function MessageItem({ msg, usernameMap }){
+function MessageItem({ msg, usernameMap, account_id }){
+    const [isEditing, setIsEditing] = useState(false);
+    const [removed, setRemoved] = useState(false);
     const username = usernameMap[msg.account_id] || '[removed]';
-    const text = msg.text
+    const [text, setText] = useState(msg.text);
     const time = new Date(msg.created_at).toLocaleString();
+    const isAuthor = msg.account_id === account_id;
+    const { headers } = useAuth();
+    const queryClient = useQueryClient();
+
     return (
-        <li className={"py-4"}>
-            <div className={"flex flex-col  border border-gray-600 p-2 rounded-lg"}>
-                <div className={"flex justify-between"}>
-                    <div className={"text-pink-950 text-sm"}>
-                        {username}
-                    </div>
-                    <div className={"text-sm"}>
-                        {time}
-                    </div>
+        <li className={`${removed ? 'py-0' : 'py-4'}`}>
+            {!removed && <div className="flex flex-col border border-gray-600 p-2 rounded-lg">
+                <div className="flex justify-between">
+                    <div className="text-pink-950 text-sm">{username}</div>
+                    <div className="text-sm">{time}</div>
                 </div>
-                <div>
-                    {text}
+
+                <div className="flex justify-between items-center mt-2">
+                    <div className="flex-1">
+                        {isEditing ? (
+                            <EditMessageField
+                                current_message={text}
+                                setText={setText}
+                                message_id={msg.id}
+                                chat_id={msg.chat_id}
+                                account_id={account_id}
+                                onFinish={() => setIsEditing(false)}
+                            />
+                        ) : (
+                            <span>{text}</span>
+                        )}
+                    </div>
+
+                    {isAuthor && (
+                        <div className="flex gap-2 ml-4">
+                            <button
+                                className="text-xs text-blue-600 hover:underline"
+                                onClick={() => {
+                                    if (isEditing) {
+                                        document
+                                            .getElementById("editMessageField")
+                                            ?.form.requestSubmit();
+                                    } else {
+                                        setIsEditing(true);
+                                    }
+                                }}
+                            >
+                                {isEditing ? "Save" : "Edit"}
+                            </button>
+                            {isEditing ? (
+                                <button
+                                    className="text-xs text-gray-600 hover:underline"
+                                    onClick={() => setIsEditing(false)}
+                                >
+                                    Cancel
+                                </button>
+                            ) : (
+                                <button
+                                    className="text-xs text-red-600 hover:underline"
+                                    onClick={() => {
+                                        setRemoved(true);
+                                        api.del(`/chats/${msg.chat_id}/messages/${msg.id}`, headers, {}).then( () =>
+                                            queryClient.invalidateQueries({
+                                                queryKey: ["chats/chatId/messages", msg.chat_id]
+                                            })
+                                        )
+                                        console.log("Delete message", msg.id);
+                                    }}
+                                >
+                                    Delete
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
-            </div>
+            </div>}
         </li>
+    );
+}
+
+function EditMessageField({current_message, message_id, chat_id, account_id, onFinish, setText}){
+    const [text, setMessage] = useState(current_message);
+    const {headers} = useAuth();
+    const queryClient = useQueryClient();
+    const mutation = useMutation({
+        mutationFn: ({ text }) =>
+            api.put(`/chats/${chat_id}/messages/${message_id}`, headers, { text, account_id }),
+        onSuccess: () => {
+            setText(text);
+            queryClient.invalidateQueries({queryKey: ["chats/chatId/messages", chat_id]}).then(() => {
+                setMessage("");
+                onFinish?.();
+            }
+            );
+        },
+
+    });
+
+    const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!text.trim()) return;
+        mutation.mutate({text, message_id, chat_id});
+    };
+
+
+    return (
+        <form onSubmit={handleSubmit}>
+            <input
+                id="editMessageField"
+                onChange={(e) => setMessage(e.target.value)}
+                value={text}
+                autoComplete={"off"}
+                className={'border border-black px-2 py-1'}
+            />
+        </form>
     )
 }
 
@@ -71,7 +167,7 @@ function MessageList({chat_id}){
         <div className={"pb-6 flex flex-col h-screen"}>
             <ul ref={containerRef} className={`overflow-y-scroll scroll-smooth h-9/10`}>
                 {messageList.map((message) => (
-                    <MessageItem key={message.id} msg={message} usernameMap={usernameMap} />
+                    <MessageItem key={message.id} msg={message} usernameMap={usernameMap} account_id={account.id} />
                 ))}
             </ul>
             <div className={"h-1/10"}>
