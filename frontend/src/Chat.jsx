@@ -15,7 +15,7 @@ MessageItem.propTypes = {
         chat_id: PropTypes.number.isRequired,
         created_at: PropTypes.string.isRequired,
     }).isRequired,
-    usernameMap: PropTypes.object.isRequired,  // Ensure usernameMap is passed as an object
+    usernameMap: PropTypes.object.isRequired,
 };
 function MessageItem({ msg, usernameMap, account_id }){
     const [isEditing, setIsEditing] = useState(false);
