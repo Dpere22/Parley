@@ -1,5 +1,3 @@
-import {data} from "react-router";
-
 class ApiError extends Error{
     constructor(status, {error, message}) {
         super(message);
