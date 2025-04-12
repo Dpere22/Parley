@@ -54,7 +54,6 @@ const post = async (url, headers, data) => {
         method: "POST",
         body: JSON.stringify(data)
     });
-    console.log(JSON.stringify(data));
     return await handleResponse(response);
 };
 
