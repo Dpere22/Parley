@@ -54,7 +54,7 @@ function MessageItem({ msg, usernameMap, account_id }){
                     {isAuthor && (
                         <div className="flex gap-2 ml-4">
                             <button
-                                className="text-xs text-blue-600 hover:underline"
+                                className="text-xs hover:bg-gray-200 border border-black rounded py-1 px-2 cursor-pointer"
                                 onClick={() => {
                                     if (isEditing) {
                                         document
@@ -76,7 +76,7 @@ function MessageItem({ msg, usernameMap, account_id }){
                                 </button>
                             ) : (
                                 <button
-                                    className="text-xs text-red-600 hover:underline"
+                                    className="text-xs hover:bg-red-500 border border-black rounded py-1 px-2 cursor-pointer"
                                     onClick={() => {
                                         setRemoved(true);
                                         api.del(`/chats/${msg.chat_id}/messages/${msg.id}`, headers, {}).then( () =>
@@ -102,6 +102,11 @@ function EditMessageField({current_message, message_id, chat_id, account_id, onF
     const [text, setMessage] = useState(current_message);
     const {headers} = useAuth();
     const queryClient = useQueryClient();
+    const inputRef = useRef(null);
+    useEffect(() => {
+        inputRef.current?.focus();
+    }, []);
+
     const mutation = useMutation({
         mutationFn: ({ text }) =>
             api.put(`/chats/${chat_id}/messages/${message_id}`, headers, { text, account_id }),
@@ -126,6 +131,7 @@ function EditMessageField({current_message, message_id, chat_id, account_id, onF
     return (
         <form onSubmit={handleSubmit}>
             <input
+                ref={inputRef}
                 id="editMessageField"
                 onChange={(e) => setMessage(e.target.value)}
                 value={text}
@@ -164,7 +170,7 @@ function MessageList({chat_id}){
     }, [account?.id, usernameMap]);
 
     return (
-        <div className={"pb-6 flex flex-col h-screen"}>
+        <div className={"pb-2 flex flex-col h-screen"}>
             <ul ref={containerRef} className={`overflow-y-scroll scroll-smooth h-9/10`}>
                 {messageList.map((message) => (
                     <MessageItem key={message.id} msg={message} usernameMap={usernameMap} account_id={account.id} />
@@ -198,7 +204,7 @@ function ChatForm({ sendEnabled, chat_id, account_id }) {
     };
 
     return (
-        <form className="p-2" onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} className={"pt-2"}>
             <label htmlFor="messageInput" className="sr-only">Message</label>
             <div className="flex gap-2">
                 <input

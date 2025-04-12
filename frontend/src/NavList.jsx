@@ -38,13 +38,13 @@ export default function NavList(){
     return (
         <div>
             <div className={"flex justify-center bg-pink-800 pb-3 pt-3"}>
-                <NavLink to={'/chats'} className={"text-xl text-white"}>Pony Express</NavLink>
+                <NavLink to={'/chats'} className={"text-xl text-white font-bold"}>Pony Express</NavLink>
             </div>
             <h1 className={"bg-gray-400 text-center text-xl font-bold pt-2 pb-2 border-b border-b-black"}>{account.username}</h1>
             <ul>
                 <li>
                     <NavLink to={`/settings`} className={({ isActive }) =>
-                        `block p-4 border-b last:border-none ${
+                        `block p-4 border-b border-black ${
                             isActive ? 'bg-pink-300 text-white' : 'bg-white text-black hover:bg-gray-100'
                         }`
                     }>
@@ -54,7 +54,7 @@ export default function NavList(){
                 <li>
                     <button
                         onClick={handleLogout}
-                        className="block w-full p-4 border-b last:border-none text-left bg-white text-black hover:bg-gray-100"
+                        className="block w-full p-4 border-b last:border-none text-left bg-white text-black hover:bg-gray-100 cursor-pointer"
                     >
                         Logout
                     </button>
