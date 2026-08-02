@@ -1,31 +1,33 @@
-[tool.poetry]
-name = "pony-express"
+[project]
+name = "realtimemessagingapp"
 version = "0.1.0"
-description = "Web API for PonyExpress messaging application"
-authors = ["Diego Perez u1301598@utah.edu"]
+description = "Add your description here"
 readme = "README.md"
-package-mode = false
+authors = [
+    { name = "Dpere22", email = "dpuu26@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "bcrypt==4.2.1",
+    "cryptography==44.0.0",
+    "fastapi==0.115.6",
+    "fastapi-cli==0.0.7",
+    "mangum==0.19.0",
+    "pydantic~=2.10.6",
+    "pydantic-settings==2.7.1",
+    "pytest~=8.3.4",
+    "python-dotenv~=1.0.1",
+    "python-jose==3.3.0",
+    "python-multipart==0.0.20",
+    "sqlalchemy~=2.0.37",
+    "sqlmodel==0.0.22",
+    "starlette~=0.41.3",
+    "uvicorn==0.34.0",
+]
 
-
-[tool.poetry.dependencies]
-python = "^3.10"
-fastapi = "^0.115.6"
-fastapi-cli = "^0.0.7"
-python-multipart = "^0.0.20"
-pydantic-settings = "^2.7.1"
-sqlmodel = "^0.0.22"
-uvicorn = "^0.34.0"
-bcrypt = "^4.2.1"
-cryptography = "^44.0.0"
-python-jose = "^3.3.0"
-mangum = "^0.19.0"
-
-[tool.poetry.group.dev.dependencies]
-ipython = "^8.31.0"
-pytest = "^8.3.4"
-httpx = "^0.28.1"
+[project.scripts]
+realtimemessagingapp = "realtimemessagingapp:main"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
-
+requires = ["uv_build>=0.12.1,<0.13.0"]
+build-backend = "uv_build"

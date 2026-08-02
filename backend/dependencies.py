@@ -13,7 +13,7 @@ from backend.database.schema import *
 
 
 
-_db_filename = "backend/database/development.db"
+_db_filename = "database/development.db"
 _db_url = f"sqlite:///{_db_filename}"
 _connect_args = {"check_same_thread": False}
 engine = create_engine(_db_url, echo=True)
