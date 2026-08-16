@@ -1,4 +1,11 @@
-export default function Form({ onSubmit, children}) {
+import type { FormEventHandler, ReactNode } from "react";
+
+interface FormProps {
+    onSubmit: FormEventHandler<HTMLFormElement>;
+    children: ReactNode;
+}
+
+export default function Form({ onSubmit, children }: FormProps) {
     const className = [
         "flex flex-col",
         "border border-black rounded",
@@ -10,4 +17,3 @@ export default function Form({ onSubmit, children}) {
         </form>
     );
 }
-

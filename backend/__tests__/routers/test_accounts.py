@@ -85,3 +85,34 @@ def test_remove_me(setup_db, client, account_data, message_data, chat_membership
 
     response = client.delete("/accounts/me", headers=headers)
     assert response.status_code == 204
+
+def test_get_my_chats(setup_db, client, authenticated_headers):
+    ## loldleman belongs to both chats
+    response = client.get("/accounts/me/chats", headers=authenticated_headers)
+    assert response.status_code == 200
+    assert response.json() == {
+        "metadata": {"count": 2},
+        "chats": [
+            {"id": 1, "name": "gamers", "owner_id": 1},
+            {"id": 2, "name": "theboys", "owner_id": 2},
+        ]
+    }
+
+def test_get_my_chats_excludes_chats_not_joined(setup_db, client, jamaron_headers):
+    ## jamaron belongs only to chat 1, while GET /chats returns both
+    response = client.get("/accounts/me/chats", headers=jamaron_headers)
+    assert response.status_code == 200
+    assert response.json() == {
+        "metadata": {"count": 1},
+        "chats": [{"id": 1, "name": "gamers", "owner_id": 1}]
+    }
+    assert client.get("/chats").json()["metadata"] == {"count": 2}
+
+def test_get_my_chats_when_member_of_none(setup_db, client, outsider_headers):
+    response = client.get("/accounts/me/chats", headers=outsider_headers)
+    assert response.status_code == 200
+    assert response.json() == {"metadata": {"count": 0}, "chats": []}
+
+def test_get_my_chats_not_authenticated(setup_db, client):
+    response = client.get("/accounts/me/chats")
+    assert response.status_code == 403

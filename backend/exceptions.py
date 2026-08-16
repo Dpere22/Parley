@@ -95,6 +95,28 @@ class AccessDeniedException(Exception):
             content = Err(error = "access_denied", message = self.message).model_dump()
         )
 
+class NotChatOwner(Exception):
+    def __init__(self, chat_id: int):
+        self.status_code = 403
+        self.error = "Access Denied"
+        self.message = f"Only the owner of chat with id={chat_id} can perform this action"
+    def response(self) -> Response:
+        return JSONResponse(
+            status_code = self.status_code,
+            content = Err(error = "not_chat_owner", message = self.message).model_dump()
+        )
+
+class NotMessageAuthor(Exception):
+    def __init__(self, message_id: int):
+        self.status_code = 403
+        self.error = "Access Denied"
+        self.message = f"Only the author of message with id={message_id} can perform this action"
+    def response(self) -> Response:
+        return JSONResponse(
+            status_code = self.status_code,
+            content = Err(error = "not_message_author", message = self.message).model_dump()
+        )
+
 class InvalidTokenException(Exception):
     def __init__(self):
         self.status_code = 403

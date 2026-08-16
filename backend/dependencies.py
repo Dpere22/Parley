@@ -10,13 +10,15 @@ from sqlmodel import SQLModel, create_engine, Session
 
 
 from backend.database.schema import *
+from backend.settings import settings
 
 
-
-_db_filename = "database/development.db"
-_db_url = f"sqlite:///{_db_filename}"
 _connect_args = {"check_same_thread": False}
-engine = create_engine(_db_url, echo=True)
+engine = create_engine(
+    settings.db_url,
+    echo=settings.db_echo,
+    connect_args=_connect_args,
+)
 
 
 def create_db_tables():

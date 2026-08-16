@@ -23,7 +23,7 @@ dependencies = [
     "sqlalchemy~=2.0.37",
     "sqlmodel==0.0.22",
     "starlette~=0.41.3",
-    "uvicorn==0.34.0",
+    "uvicorn[standard]==0.34.0",
 ]
 
 [project.scripts]

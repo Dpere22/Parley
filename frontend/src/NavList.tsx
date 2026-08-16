@@ -1,31 +1,23 @@
-import {NavLink, useNavigate} from "react-router"
-import {useAccount, useChats} from "./queries.js"
-import PropTypes from "prop-types"
-import {useAuth} from "./hooks.js";
+import { NavLink, useNavigate } from "react-router";
+import { useAccount, useMyChats } from "./queries";
+import { useAuth } from "./hooks";
+import type { Chat } from "./types";
 
-ChatItem.propTypes = {
-    id: PropTypes.number,
-    name: PropTypes.string,
-};
+const linkClassName = ({ isActive }: { isActive: boolean }) =>
+    `block p-4 border-b last:border-none ${
+        isActive ? 'bg-pink-300 text-white' : 'bg-white text-black hover:bg-gray-100'
+    }`;
 
-function ChatItem({id, name}){
+function ChatItem({ id, name }: Chat) {
     return (
-        <NavLink
-            to={`/chats/${id}`}
-            className={({ isActive }) =>
-                `block p-4 border-b last:border-none ${
-                    isActive ? 'bg-pink-300 text-white' : 'bg-white text-black hover:bg-gray-100'
-                }`
-            }
-        >
+        <NavLink to={`/chats/${id}`} className={linkClassName}>
             {name}
         </NavLink>
     );
 }
 
-
-export default function NavList(){
-    const { chats } = useChats();
+export default function NavList() {
+    const { chats } = useMyChats();
     const { account } = useAccount();
     const navigate = useNavigate();
     const { logout } = useAuth();
@@ -43,11 +35,7 @@ export default function NavList(){
             <h1 className={"bg-gray-400 text-center text-xl font-bold pt-2 pb-2 border-b border-b-black"}>{account.username}</h1>
             <ul>
                 <li>
-                    <NavLink to={`/settings`} className={({ isActive }) =>
-                        `block p-4 border-b border-black ${
-                            isActive ? 'bg-pink-300 text-white' : 'bg-white text-black hover:bg-gray-100'
-                        }`
-                    }>
+                    <NavLink to={`/settings`} className={linkClassName}>
                         Settings
                     </NavLink>
                 </li>
@@ -66,6 +54,9 @@ export default function NavList(){
                     <ChatItem key={chat.id} {...chat} />
                 ))}
             </ul>
+            <NavLink to={'/chats/browse'} className={linkClassName}>
+                Browse chats
+            </NavLink>
         </div>
-    )
+    );
 }

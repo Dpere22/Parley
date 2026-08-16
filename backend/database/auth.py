@@ -17,9 +17,9 @@ from backend.models import Login, Claims
 
 from backend.database.accounts import _get_by_username, get_by_id, check_email_available, check_username_available
 
-from backend.settings import settings
+from backend.database import password as password_utils
 
-import bcrypt
+from backend.settings import settings
 
 cookie_scheme = APIKeyCookie(name=settings.jwt_cookie_key, auto_error=False)
 bearer_scheme = HTTPBearer(auto_error=False)
@@ -29,7 +29,7 @@ def create_user(session: Session, form: Registration) -> DBAccount:
         raise DuplicateEntityValue("account", "username", form.username)
     if not check_email_available(session, form.email):
         raise DuplicateEntityValue("account", "email", form.email)
-    hashed_password = _hash_password(form.password)
+    hashed_password = password_utils.hash_password(form.password)
     user = DBAccount(**form.model_dump(), hashed_password=hashed_password)
     session.add(user)
     session.commit()
@@ -38,7 +38,7 @@ def create_user(session: Session, form: Registration) -> DBAccount:
 
 
 def validate_credentials(user: DBAccount | None, password: str) -> DBAccount:
-    if user is None or not _verify_password(password, user.hashed_password):
+    if user is None or not password_utils.verify_password(password, user.hashed_password):
         raise InvalidCredentials()
     return user
 
@@ -46,7 +46,7 @@ def validate_credentials(user: DBAccount | None, password: str) -> DBAccount:
 def get_verified_user(session: Session, username: str, password: str) -> DBAccount:
     stmt = select(DBAccount).where(DBAccount.username == username)
     user = session.exec(stmt).one_or_none()
-    if user is not None and _verify_password(password, user.hashed_password):
+    if user is not None and password_utils.verify_password(password, user.hashed_password):
         return user
     raise InvalidCredentials()
 
@@ -56,21 +56,9 @@ def generate_claims(user: DBAccount) -> Claims:
     exp = iat + settings.jwt_duration
     return Claims(
         sub=str(user.id),
-        iss = "http://127.0.0.1",
+        iss = settings.jwt_issuer,
         iat = iat,
         exp=exp,
-    )
-
-def _hash_password(password):
-    return bcrypt.hashpw(
-        password.encode("utf-8"),
-        bcrypt.gensalt()
-    ).decode("utf-8")
-
-def _verify_password(password: str, hashed_password: str) -> bool:
-    return bcrypt.checkpw(
-        password.encode("utf-8"),
-        hashed_password.encode("utf-8")
     )
 
 def generate_token(session: Session, form: Login) -> str:

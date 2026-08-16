@@ -1,3 +1,15 @@
+import type { InputHTMLAttributes } from "react";
+
+interface FormInputProps
+    extends Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "name"> {
+    id: string;
+    type: string;
+    value: string;
+    setValue: (value: string) => void;
+    name: string;
+    text: string;
+}
+
 export default function FormInput({
                                       id,
                                       type,
@@ -6,7 +18,7 @@ export default function FormInput({
                                       name,
                                       text,
                                       ...options
-                                  }) {
+                                  }: FormInputProps) {
     const className =
         "border border-gray-400 px-4 py-2 rounded" +
         (options.disabled ? " bg-gray-400 text-gray-600" : "");
