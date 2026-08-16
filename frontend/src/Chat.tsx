@@ -1,4 +1,12 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import {
+    useEffect,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+    type FormEvent,
+    type KeyboardEvent,
+} from "react";
 import { useNavigate, useParams } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAccount, useChat, useChatAccounts, useMessages } from "./queries";
@@ -9,6 +17,9 @@ import { useChatSocket } from "./useChatSocket";
 import type { Message } from "./types";
 
 type UsernameMap = Record<number, string>;
+
+/** How tall a message box may grow before it starts scrolling instead. */
+const maxInputHeight = 200;
 
 interface MessageItemProps {
     msg: Message;
@@ -40,8 +51,11 @@ function MessageItem({ msg, usernameMap, account_id, chat_id, isChatOwner }: Mes
                     <div className="text-sm">{time}</div>
                 </div>
 
-                <div className="flex justify-between items-center mt-2">
-                    <div className="flex-1">
+                <div className="flex justify-between items-start mt-2">
+                    {/* min-w-0 is what lets the text wrap: a flex item defaults to
+                        min-width:auto, so without it this div grows to fit the longest
+                        line instead of shrinking and letting the text break. */}
+                    <div className="flex-1 min-w-0">
                         {isEditing ? (
                             <EditMessageField
                                 current_message={msg.text}
@@ -50,7 +64,9 @@ function MessageItem({ msg, usernameMap, account_id, chat_id, isChatOwner }: Mes
                                 onFinish={() => setIsEditing(false)}
                             />
                         ) : (
-                            <span>{msg.text}</span>
+                            // pre-wrap so the line breaks a sender typed are kept, and
+                            // break-words so an unbroken run of characters cannot widen the row
+                            <span className="whitespace-pre-wrap break-words">{msg.text}</span>
                         )}
                     </div>
 
@@ -107,11 +123,21 @@ function EditMessageField({ current_message, message_id, chat_id, onFinish }: Ed
     const [text, setText] = useState(current_message);
     const { headers } = useAuth();
     const queryClient = useQueryClient();
-    const inputRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
 
     useEffect(() => {
         inputRef.current?.focus();
     }, []);
+
+    // Matches the compose box, so editing a message that has line breaks keeps them.
+    useLayoutEffect(() => {
+        const textarea = inputRef.current;
+        if (textarea === null) {
+            return;
+        }
+        textarea.style.height = "auto";
+        textarea.style.height = `${Math.min(textarea.scrollHeight, maxInputHeight)}px`;
+    }, [text]);
 
     const mutation = useMutation<Message, ApiError, { text: string }>({
         mutationFn: ({ text }) =>
@@ -129,15 +155,27 @@ function EditMessageField({ current_message, message_id, chat_id, onFinish }: Ed
         mutation.mutate({ text });
     };
 
+    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            e.currentTarget.form?.requestSubmit();
+        }
+        if (e.key === "Escape") {
+            onFinish();
+        }
+    };
+
     return (
         <form onSubmit={handleSubmit}>
-            <input
+            <textarea
                 ref={inputRef}
                 id={`editMessageField-${message_id}`}
+                rows={1}
                 onChange={(e) => setText(e.target.value)}
+                onKeyDown={handleKeyDown}
                 value={text}
                 autoComplete={"off"}
-                className={'border border-black px-2 py-1'}
+                className={'border border-black px-2 py-1 rounded w-full resize-none overflow-y-auto leading-6'}
             />
         </form>
     );
@@ -228,6 +266,16 @@ function MessageList({ chat_id }: { chat_id: number }) {
     const containerRef = useRef<HTMLUListElement>(null);
     // False until this chat has been anchored to its latest message.
     const hasAnchored = useRef(false);
+    // Whether the reader is currently parked at the newest message.
+    const atBottom = useRef(true);
+
+    const handleScroll = () => {
+        const container = containerRef.current;
+        if (container !== null) {
+            atBottom.current =
+                container.scrollHeight - container.clientHeight - container.scrollTop <= 8;
+        }
+    };
 
     // Opening a different chat should land at the bottom again.
     useLayoutEffect(() => {
@@ -251,6 +299,23 @@ function MessageList({ chat_id }: { chat_id: number }) {
         }
     }, [messageList, isLoading, chat_id]);
 
+    // The list shrinks as the compose box grows, which would otherwise push the newest
+    // message out of sight. Re-pin to the bottom on resize, but only for a reader who was
+    // already there, so scrolling up to read history is not undone.
+    useLayoutEffect(() => {
+        const container = containerRef.current;
+        if (container === null) {
+            return;
+        }
+        const observer = new ResizeObserver(() => {
+            if (atBottom.current) {
+                container.scrollTop = container.scrollHeight;
+            }
+        });
+        observer.observe(container);
+        return () => observer.disconnect();
+    }, []);
+
     const usernameMap = useMemo(() => {
         return accounts.reduce<UsernameMap>((acc, account) => {
             acc[account.id] = account.username;
@@ -262,9 +327,12 @@ function MessageList({ chat_id }: { chat_id: number }) {
     const isChatOwner = chat.owner_id === account.id;
 
     return (
-        <div className={"pb-2 flex flex-col h-screen"}>
+        <div className={"pb-5 flex flex-col h-screen"}>
             <ChatHeader chat_id={chat_id} isMember={isMember} connected={connected} />
-            <ul ref={containerRef} className={`overflow-y-scroll flex-1`}>
+            {/* pr-3 keeps the message cards clear of the scrollbar instead of ending
+                flush against it. ChatForm carries the same padding so the compose row
+                stays aligned with the messages above it. */}
+            <ul ref={containerRef} onScroll={handleScroll} className={`overflow-y-scroll flex-1 pr-3`}>
                 {messageList.map((message) => (
                     <MessageItem
                         key={message.id}
@@ -293,6 +361,7 @@ function ChatForm({ sendEnabled, chat_id, account_id }: ChatFormProps) {
     const [text, setMessage] = useState("");
     const { headers } = useAuth();
     const queryClient = useQueryClient();
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
 
     const mutation = useMutation<Message, ApiError, { text: string; account_id: number }>({
         mutationFn: ({ text, account_id }) =>
@@ -309,25 +378,48 @@ function ChatForm({ sendEnabled, chat_id, account_id }: ChatFormProps) {
         setMessage("");
     };
 
+    // Enter sends and shift+enter breaks the line, so a textarea still behaves like a
+    // chat box rather than swallowing the key that used to submit the form.
+    const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            e.currentTarget.form?.requestSubmit();
+        }
+    };
+
+    // Grow to fit the text, then scroll internally once it hits the cap. Height has to be
+    // cleared first so scrollHeight reports the content height rather than the current one.
+    useLayoutEffect(() => {
+        const textarea = textareaRef.current;
+        if (textarea === null) {
+            return;
+        }
+        textarea.style.height = "auto";
+        textarea.style.height = `${Math.min(textarea.scrollHeight, maxInputHeight)}px`;
+    }, [text]);
+
     return (
-        <form onSubmit={handleSubmit} className={"pt-2"}>
+        <form onSubmit={handleSubmit} className={"pt-3 pr-3"}>
             <label htmlFor="messageInput" className="sr-only">Message</label>
-            <div className="flex gap-2">
-                <input
+            <div className="flex gap-2 items-end">
+                <textarea
                     id="messageInput"
+                    ref={textareaRef}
+                    rows={1}
                     onChange={(e) => setMessage(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     value={text}
                     placeholder={sendEnabled ? "Type a message..." : "Join this chat to send messages"}
                     disabled={!sendEnabled}
                     autoComplete={"off"}
-                    className={`border border-black px-2 py-1 rounded flex-1 ${
+                    className={`border border-black px-3 py-2 rounded flex-1 resize-none overflow-y-auto leading-6 ${
                         !sendEnabled ? "bg-gray-200 text-gray-500 cursor-not-allowed" : ""
                     }`}
                 />
                 <button
                     type="submit"
                     disabled={!sendEnabled || !text.trim()}
-                    className={`px-4 py-1 rounded border border-black ${
+                    className={`px-4 py-2 rounded border border-black ${
                         sendEnabled && text.trim()
                             ? "bg-pink-300 text-white hover:bg-pink-400 cursor-pointer"
                             : "bg-gray-200 text-gray-500 cursor-not-allowed"
@@ -351,7 +443,9 @@ export default function Chat() {
             <div className={"w-1/4 border-r border-gray-300"}>
                 <NavList />
             </div>
-            <div className={"w-3/4 pr-4 pl-4 bg-white"}>
+            {/* min-w-0 for the same reason as the message row: without it a wide message
+                could push this panel past 75% instead of wrapping inside it. */}
+            <div className={"w-3/4 min-w-0 pr-4 pl-4 bg-white"}>
                 <MessageList chat_id={chat_id} />
             </div>
         </div>
