@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAccount, useChat, useChatAccounts, useMessages } from "./queries";
@@ -220,18 +220,36 @@ function ChatHeader({ chat_id, isMember, connected }: ChatHeaderProps) {
 }
 
 function MessageList({ chat_id }: { chat_id: number }) {
-    const { messageList } = useMessages(chat_id);
+    const { messageList, isLoading } = useMessages(chat_id);
     const { account } = useAccount();
     const { accounts } = useChatAccounts(chat_id);
     const { chat } = useChat(chat_id);
     const { connected } = useChatSocket(chat_id);
     const containerRef = useRef<HTMLUListElement>(null);
+    // False until this chat has been anchored to its latest message.
+    const hasAnchored = useRef(false);
 
-    useEffect(() => {
-        if (containerRef.current) {
-            containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    // Opening a different chat should land at the bottom again.
+    useLayoutEffect(() => {
+        hasAnchored.current = false;
+    }, [chat_id]);
+
+    // useLayoutEffect rather than useEffect: this runs before the browser paints, so the
+    // chat is never drawn at the top and then scrolled down.
+    useLayoutEffect(() => {
+        const container = containerRef.current;
+        // While loading, the list holds a placeholder whose height is not the real one.
+        if (container === null || isLoading) {
+            return;
         }
-    }, [messageList]);
+        if (hasAnchored.current) {
+            // messages arriving in an open chat animate into view
+            container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+        } else {
+            container.scrollTop = container.scrollHeight;
+            hasAnchored.current = true;
+        }
+    }, [messageList, isLoading, chat_id]);
 
     const usernameMap = useMemo(() => {
         return accounts.reduce<UsernameMap>((acc, account) => {
@@ -246,7 +264,7 @@ function MessageList({ chat_id }: { chat_id: number }) {
     return (
         <div className={"pb-2 flex flex-col h-screen"}>
             <ChatHeader chat_id={chat_id} isMember={isMember} connected={connected} />
-            <ul ref={containerRef} className={`overflow-y-scroll scroll-smooth flex-1`}>
+            <ul ref={containerRef} className={`overflow-y-scroll flex-1`}>
                 {messageList.map((message) => (
                     <MessageItem
                         key={message.id}

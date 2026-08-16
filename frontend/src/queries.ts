@@ -77,7 +77,7 @@ export const useMessages = (id: number) => {
     });
 
     const messageList = isLoading ? [nullMessage] : data?.messages || [];
-    return { messageList, error };
+    return { messageList, isLoading, error };
 };
 
 export const useChatAccounts = (id: number) => {
