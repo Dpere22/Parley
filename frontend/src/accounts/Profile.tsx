@@ -1,17 +1,22 @@
-import PropTypes from "prop-types";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {Navigate, useNavigate} from "react-router";
+import { useNavigate } from "react-router";
 import { useAuth } from "../hooks";
 import { useAccount } from "../queries";
 import Form from "../components/Form";
 import FormInput from "../components/FormInput";
 import FormButton from "../components/FormButton";
-import api from "../api";
-import NavList from "../NavList.jsx";
+import api, { type ApiError } from "../api";
+import NavList from "../NavList";
+import type { User } from "../types";
 
+function Error({ message }: { message: string }) {
+    return <p className="text-xs text-amber-700">{message}</p>;
+}
 
-
+function Success({ message }: { message: string }) {
+    return <p className="text-xs text-lime-600">{message}</p>;
+}
 
 function UpdateForm() {
     const queryClient = useQueryClient();
@@ -19,19 +24,16 @@ function UpdateForm() {
     const { headers } = useAuth();
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
-    const [errorMsg, setErrorMsg] = useState(null);
-    const [successMsg, setSuccessMsg] = useState(null);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
     useEffect(() => {
         setUsername(account.username);
-    }, [account]);
-
-    useEffect(() => {
         setEmail(account.email);
     }, [account]);
 
-    const mutation = useMutation({
-        mutationFn: () => api.put("/accounts/me", headers, { username, email }),
+    const mutation = useMutation<User, ApiError>({
+        mutationFn: () => api.put<User>("/accounts/me", headers, { username, email }),
         onSuccess: (data) => {
             queryClient.setQueryData(["account"], data);
             setErrorMsg(null);
@@ -43,7 +45,7 @@ function UpdateForm() {
         },
     });
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         mutation.mutate();
     };
@@ -76,16 +78,16 @@ function UpdateForm() {
     );
 }
 
-function UpdatePasswordForm(){
+function UpdatePasswordForm() {
     const [new_password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [old_password, setOldPassword] = useState("");
     const [disabled, setDisabled] = useState(false);
-    const [errorMsg, setErrorMsg] = useState("");
-    const [successMsg, setSuccessMsg] = useState("");
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    const [successMsg, setSuccessMsg] = useState<string | null>(null);
     const { headers } = useAuth();
 
-    const mutation = useMutation({
+    const mutation = useMutation<unknown, ApiError>({
         mutationFn: () => api.putForm("/accounts/me/password", headers, { old_password, new_password }),
         onMutate: () => setDisabled(true),
         onSuccess: () => {
@@ -100,9 +102,9 @@ function UpdatePasswordForm(){
         },
     });
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if(new_password !== confirmPassword){
+        if (new_password !== confirmPassword) {
             setErrorMsg("Passwords do not match");
             return;
         }
@@ -142,37 +144,27 @@ function UpdatePasswordForm(){
             {successMsg && <Success message={successMsg} />}
             <FormButton text="update password" disabled={buttonDisabled} />
         </Form>
-    )
+    );
 }
-
-function AccountButtons(){
-    return(
-        <div className="flex flex-col border border-black rounded space-y-4 w-96 mx-auto p-4">
-            <h1 className="text-xl font-bold text-center">account</h1>
-            <LogoutButton />
-            <DeleteAccountButton />
-        </div>
-    )
-}
-
 
 function LogoutButton() {
-    const queryClient2 = useQueryClient();
+    const queryClient = useQueryClient();
     const { logout } = useAuth();
     const navigate = useNavigate();
-    const handleLogout = () =>{
+
+    const handleLogout = () => {
         logout();
-        queryClient2.invalidateQueries().then(() => navigate('/login'));
+        queryClient.invalidateQueries().then(() => navigate('/login'));
     };
 
     return (
         <div>
-        <button
-            onClick={handleLogout}
-            className="cursor-pointer border border-black rounded p-2 hover:bg-red-400 w-full"
-        >
-            logout
-        </button>
+            <button
+                onClick={handleLogout}
+                className="cursor-pointer border border-black rounded p-2 hover:bg-red-400 w-full"
+            >
+                logout
+            </button>
         </div>
     );
 }
@@ -182,7 +174,8 @@ function DeleteAccountButton() {
     const queryClient = useQueryClient();
     const { headers, logout } = useAuth();
     const [errorMsg, setErrorMsg] = useState("");
-    const mutation = useMutation({
+
+    const mutation = useMutation<unknown, ApiError>({
         mutationFn: () => api.del("/accounts/me", headers),
         onSuccess: () => {
             logout();
@@ -195,20 +188,28 @@ function DeleteAccountButton() {
 
     return (
         <div>
-        <button
-            onClick={mutation.mutate}
-            className="cursor-pointer border border-red-600 rounded p-2 hover:bg-red-800 w-full"
-        >
-            delete account
-        </button>
-        {errorMsg && <Error message={errorMsg} />}
+            <button
+                onClick={() => mutation.mutate()}
+                className="cursor-pointer border border-red-600 rounded p-2 hover:bg-red-800 w-full"
+            >
+                delete account
+            </button>
+            {errorMsg && <Error message={errorMsg} />}
         </div>
     );
+}
 
+function AccountButtons() {
+    return (
+        <div className="flex flex-col border border-black rounded space-y-4 w-96 mx-auto p-4">
+            <h1 className="text-xl font-bold text-center">account</h1>
+            <LogoutButton />
+            <DeleteAccountButton />
+        </div>
+    );
 }
 
 function Account() {
-
     return (
         <section className="justify-self-center space-y-4">
             <UpdateForm />
@@ -218,42 +219,16 @@ function Account() {
     );
 }
 
-function Error({ message }) {
-    return <p className="text-xs text-amber-700">{message}</p>;
-}
-
-function Success({ message }) {
-    return <p className="text-xs text-lime-600">{message}</p>;
-}
-
 export default function Profile() {
-    const { loggedIn } = useAuth();
-
-    if (!loggedIn) {
-        return <Navigate to="/" />;
-    }
-
     return (
         <div className={"flex"}>
             <div className={"w-1/4 border-r border-gray-300"}>
                 <NavList />
             </div>
-            <div className={"w-3/4 pr-4 pl-4 pt-4 pb-8 bg-white h-screen w-fill"}>
+            <div className={"w-3/4 pr-4 pl-4 pt-4 pb-8 bg-white h-screen"}>
                 <h1 className={"text-3xl font-bold text-center pb-4"}>Settings</h1>
                 <Account />
             </div>
         </div>
     );
 }
-
-Account.propTypes = {
-    username: PropTypes.string,
-};
-
-Error.propTypes = {
-    message: PropTypes.string,
-};
-
-Success.propTypes = {
-    message: PropTypes.string,
-};

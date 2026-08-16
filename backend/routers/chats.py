@@ -1,15 +1,63 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Response, Depends
+from fastapi import APIRouter, Response, Depends, Query, WebSocket, WebSocketDisconnect
 
 from backend.database import chats as chats_db
-from backend.database.auth import get_current_user
+from backend.database.auth import get_current_user, extract_user
 from backend.database.schema import DBChat, DBMessage, DBAccount
 from backend.dependencies import DBSession
 from backend.exceptions import EntityNotFound, Err
 from backend.models import *
+from backend.realtime import (
+    MEMBER_JOIN,
+    MEMBER_LEAVE,
+    MESSAGE_EDIT,
+    MESSAGE_NEW,
+    manager,
+    membership_event,
+    message_deleted_event,
+    message_event,
+)
 
 chats_router = APIRouter(prefix="/chats", tags=["chats"])
+
+## close codes for the chat socket, in the private 4000-4999 range
+WS_UNAUTHENTICATED = 4401
+WS_NOT_A_MEMBER = 4403
+
+
+@chats_router.websocket("/{chat_id}/ws")
+async def chat_socket(websocket: WebSocket, chat_id: int, session: DBSession, token: str | None = Query(default=None)):
+    """Stream chat events to a member of the chat.
+
+    A browser cannot set headers on a WebSocket handshake, so the access token arrives
+    as a query parameter and is validated with the same helper the HTTP routes use.
+    """
+    await websocket.accept()
+
+    if token is None:
+        await websocket.close(code=WS_UNAUTHENTICATED)
+        return
+    try:
+        user = extract_user(session, token)
+    except Exception:
+        await websocket.close(code=WS_UNAUTHENTICATED)
+        return
+
+    members = chats_db.get_chat_members(session, chat_id)
+    if user.id not in {member.id for member in members}:
+        await websocket.close(code=WS_NOT_A_MEMBER)
+        return
+
+    manager.add(chat_id, websocket)
+    try:
+        ## the client never sends commands, so this just parks until it goes away
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        manager.remove(chat_id, websocket)
+    except Exception:
+        manager.remove(chat_id, websocket)
 
 
 @chats_router.get("/",
@@ -108,10 +156,14 @@ def create_chat(chat: ChatCreate, session: DBSession, user: Annotated[DBAccount,
                       422: {
                           "model": Err,
                           "description": "Chat name already exists or account not in chat or account doesn't exist"
+                      },
+                      403: {
+                          "model": Err,
+                          "description": "Not authenticated, or not the owner of the chat"
                       }
                   })
-def update_chat(chat: ChatUpdate, session: DBSession, chat_id: int) -> DBChat:
-    return chats_db.update_chat(session, chat_id, chat)
+def update_chat(chat: ChatUpdate, session: DBSession, chat_id: int, user: Annotated[DBAccount, Depends(get_current_user)]) -> DBChat:
+    return chats_db.update_chat(session, chat_id, chat, user)
 
 @chats_router.delete("/{chat_id}",
                      status_code=204,
@@ -120,10 +172,14 @@ def update_chat(chat: ChatUpdate, session: DBSession, chat_id: int) -> DBChat:
                          404: {
                              "model": Err,
                              "description": "Chat not found"
+                         },
+                         403: {
+                             "model": Err,
+                             "description": "Not authenticated, or not the owner of the chat"
                          }
                      })
-def delete_chat(session: DBSession, chat_id: int):
-    chats_db.delete_chat(session, chat_id)
+def delete_chat(session: DBSession, chat_id: int, user: Annotated[DBAccount, Depends(get_current_user)]):
+    chats_db.delete_chat(session, chat_id, user)
 
 @chats_router.post("/{chat_id}/messages",
                    response_model=Message,
@@ -144,8 +200,10 @@ def delete_chat(session: DBSession, chat_id: int):
                            "description": "User not authenticated, please log in or cannot chat on behalf of another account"
                        }
                    })
-def add_message_to_chat(message: CreateMessage, chat_id: int, session: DBSession, user: Annotated[DBAccount, Depends(get_current_user)]) -> DBMessage:
-    return chats_db.add_chat_message(session, chat_id, message, user)
+async def add_message_to_chat(message: CreateMessage, chat_id: int, session: DBSession, user: Annotated[DBAccount, Depends(get_current_user)]) -> DBMessage:
+    db_message = chats_db.add_chat_message(session, chat_id, message, user)
+    await manager.broadcast(chat_id, message_event(MESSAGE_NEW, db_message))
+    return db_message
 
 @chats_router.put("/{chat_id}/messages/{message_id}",
                   response_model=Message,
@@ -156,10 +214,16 @@ def add_message_to_chat(message: CreateMessage, chat_id: int, session: DBSession
                       404: {
                           "model": Err,
                           "description": "Chat not found or the message doesn't exist"
+                      },
+                      403: {
+                          "model": Err,
+                          "description": "Not authenticated, or not the author of the message"
                       }
                   })
-def update_message_text(message: UpdateMessage, chat_id: int, message_id: int, session: DBSession) -> DBMessage:
-    return chats_db.update_chat_message(session, chat_id, message_id, message)
+async def update_message_text(message: UpdateMessage, chat_id: int, message_id: int, session: DBSession, user: Annotated[DBAccount, Depends(get_current_user)]) -> DBMessage:
+    db_message = chats_db.update_chat_message(session, chat_id, message_id, message, user)
+    await manager.broadcast(chat_id, message_event(MESSAGE_EDIT, db_message))
+    return db_message
 
 @chats_router.delete("/{chat_id}/messages/{message_id}",
                      status_code=204,
@@ -168,10 +232,15 @@ def update_message_text(message: UpdateMessage, chat_id: int, message_id: int, s
                          404: {
                              "model": Err,
                              "description": "Chat not found or the message doesn't exist"
+                         },
+                         403: {
+                             "model": Err,
+                             "description": "Not authenticated, or not the author of the message nor the chat owner"
                          }
                      })
-def delete_message_from_chat(chat_id: int, message_id: int, session: DBSession):
-    chats_db.delete_chat_message(session, chat_id, message_id)
+async def delete_message_from_chat(chat_id: int, message_id: int, session: DBSession, user: Annotated[DBAccount, Depends(get_current_user)]):
+    chats_db.delete_chat_message(session, chat_id, message_id, user)
+    await manager.broadcast(chat_id, message_deleted_event(chat_id, message_id))
 
 @chats_router.post("/{chat_id}/accounts",
                    response_model=ChatMembership,
@@ -185,11 +254,17 @@ def delete_message_from_chat(chat_id: int, message_id: int, session: DBSession):
                        404:{
                            "model": Err,
                            "description": "Chat not found or account not found"
+                       },
+                       403: {
+                           "model": Err,
+                           "description": "Not authenticated, or adding another account without owning the chat"
                        }
                    })
-def add_account_to_chat(account: AddAccountToChat, chat_id: int, session: DBSession, response: Response = None):
-    created, result = chats_db.add_account_to_chat(session, chat_id, account)
+async def add_account_to_chat(account: AddAccountToChat, chat_id: int, session: DBSession, user: Annotated[DBAccount, Depends(get_current_user)], response: Response = None):
+    created, result = chats_db.add_account_to_chat(session, chat_id, account, user)
     response.status_code = 201 if created else 200
+    if created:
+        await manager.broadcast(chat_id, membership_event(MEMBER_JOIN, chat_id, account.account_id))
     return result
 
 @chats_router.delete("/{chat_id}/accounts/{account_id}",
@@ -203,7 +278,12 @@ def add_account_to_chat(account: AddAccountToChat, chat_id: int, session: DBSess
                          422: {
                              "model": Err,
                              "description": "Account does not exist or isn't a part of the chat or is the owner of the chat"
+                         },
+                         403: {
+                             "model": Err,
+                             "description": "Not authenticated, or removing another account without owning the chat"
                          }
                      })
-def delete_account_from_chat(chat_id: int, account_id: int, session: DBSession):
-    chats_db.delete_account_from_chat(session, chat_id, account_id)
+async def delete_account_from_chat(chat_id: int, account_id: int, session: DBSession, user: Annotated[DBAccount, Depends(get_current_user)]):
+    chats_db.delete_account_from_chat(session, chat_id, account_id, user)
+    await manager.broadcast(chat_id, membership_event(MEMBER_LEAVE, chat_id, account_id))

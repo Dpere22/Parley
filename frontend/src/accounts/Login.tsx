@@ -1,32 +1,27 @@
-import PropTypes from "prop-types";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useMutation } from "@tanstack/react-query";
-import {Link, Navigate} from "react-router";
+import { Link, Navigate } from "react-router";
 import Form from "../components/Form";
 import FormInput from "../components/FormInput";
 import FormButton from "../components/FormButton";
 import { useAuth } from "../hooks";
-import api from "../api";
+import api, { type ApiError } from "../api";
+import type { AccessToken } from "../types";
 
-function Error({ message }) {
+function Error({ message }: { message: string }) {
     return <p className="text-amber-800 text-sm">{message}</p>;
 }
 
-Error.propTypes = {
-    message: PropTypes.string,
-};
-
-export default function LoginPage(){
-    return(
+export default function LoginPage() {
+    return (
         <div className={"pt-4"}>
             <h1 className={"text-center font-extrabold text-4xl pb-2"}>Pony Express</h1>
             <div className={"pt-4"}>
                 <Login />
             </div>
         </div>
-    )
+    );
 }
-
 
 function Login() {
     const { loggedIn, login } = useAuth();
@@ -35,8 +30,8 @@ function Login() {
     const [disabled, setDisabled] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
 
-    const mutation = useMutation({
-        mutationFn: () => api.postForm("/auth/token", {}, { username, password }),
+    const mutation = useMutation<AccessToken, ApiError>({
+        mutationFn: () => api.postForm<AccessToken>("/auth/token", {}, { username, password }),
         onMutate: () => setDisabled(true),
         onSuccess: (data) => login(data.access_token),
         onError: (error) => {
@@ -49,7 +44,7 @@ function Login() {
         return <Navigate to="/" />;
     }
 
-    const handleSubmit = (e) => {
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         mutation.mutate();
     };

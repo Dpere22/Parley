@@ -8,7 +8,7 @@ from starlette.testclient import TestClient
 from backend import app
 from backend.database.schema import *
 from backend.dependencies import get_session
-from backend.database import auth, accounts
+from backend.database import password as password_utils
 
 from datetime import datetime
 
@@ -83,20 +83,37 @@ def client(session, monkeypatch):
     def _get_session_override():
         return session
 
-    monkeypatch.setattr(auth, "_hash_password", hash_password_stub)
-    monkeypatch.setattr(auth, "_verify_password", verify_password_stub)
-    monkeypatch.setattr(accounts, "hash_password", hash_password_stub)
-    monkeypatch.setattr(accounts, "verify_password", verify_password_stub)
+    # auth.py and accounts.py both call through the password module, so patching it
+    # here is enough to keep bcrypt out of the test suite.
+    monkeypatch.setattr(password_utils, "hash_password", hash_password_stub)
+    monkeypatch.setattr(password_utils, "verify_password", verify_password_stub)
     app.dependency_overrides[get_session] = _get_session_override
     yield TestClient(app)
     app.dependency_overrides.clear()
 
-@pytest.fixture
-def authenticated_headers(client) -> Dict[str, str]:
-    token_response = client.post("/auth/token", data={"username": "loldleman", "password": "password"})
+def _login(client, username: str) -> Dict[str, str]:
+    token_response = client.post("/auth/token", data={"username": username, "password": "password"})
     assert token_response.status_code == 200
     token = token_response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def authenticated_headers(client, setup_db) -> Dict[str, str]:
+    """loldleman (id=2): owns chat 2, member of chats 1 and 2, author of messages 2 and 3."""
+    return _login(client, "loldleman")
+
+
+@pytest.fixture
+def jamaron_headers(client, setup_db) -> Dict[str, str]:
+    """jamaron (id=1): owns chat 1, member of chat 1, author of message 1."""
+    return _login(client, "jamaron")
+
+
+@pytest.fixture
+def outsider_headers(client, setup_db) -> Dict[str, str]:
+    """john (id=3): owns nothing and belongs to no chat, for authorization failure cases."""
+    return _login(client, "john")
 
 
 

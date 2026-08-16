@@ -1,23 +1,18 @@
-import {useAuth} from "../hooks.js";
-import {useState} from "react";
-import {useMutation} from "@tanstack/react-query";
-import api from "../api.js";
-import {Link, Navigate} from "react-router";
-import Form from "../components/Form.jsx";
-import FormInput from "../components/FormInput.jsx";
-import FormButton from "../components/FormButton.jsx";
-import PropTypes from "prop-types";
+import { useState, type FormEvent } from "react";
+import { useMutation } from "@tanstack/react-query";
+import { Link, Navigate } from "react-router";
+import { useAuth } from "../hooks";
+import api, { type ApiError } from "../api";
+import Form from "../components/Form";
+import FormInput from "../components/FormInput";
+import FormButton from "../components/FormButton";
+import type { AccessToken, User } from "../types";
 
-function Error({ message }) {
+function Error({ message }: { message: string }) {
     return <p className="text-amber-800 text-sm">{message}</p>;
 }
 
-Error.propTypes = {
-    message: PropTypes.string,
-};
-
-
-function RegistrationForm(){
+function RegistrationForm() {
     const { loggedIn, login } = useAuth();
     const [username, setUsername] = useState("");
     const [password, setPassword] = useState("");
@@ -26,18 +21,9 @@ function RegistrationForm(){
     const [disabled, setDisabled] = useState(false);
     const [errorMsg, setErrorMsg] = useState("");
 
-    const mutation = useMutation({
-        mutationFn: () => api.postForm("/auth/registration", {}, { username, email, password }),
-        onMutate: () => setDisabled(true),
-        onSuccess: () => mutation2.mutate(),
-        onError: (error) => {
-            setDisabled(false);
-            setErrorMsg(error.message);
-        },
-    });
-
-    const mutation2 = useMutation({
-        mutationFn: () => api.postForm("/auth/token", {}, { username, password }),
+    // Registering does not return a token, so a successful sign up logs in straight after.
+    const tokenMutation = useMutation<AccessToken, ApiError>({
+        mutationFn: () => api.postForm<AccessToken>("/auth/token", {}, { username, password }),
         onMutate: () => setDisabled(true),
         onSuccess: (data) => login(data.access_token),
         onError: (error) => {
@@ -45,16 +31,28 @@ function RegistrationForm(){
             setErrorMsg(error.message);
         },
     });
+
+    const registerMutation = useMutation<User, ApiError>({
+        mutationFn: () => api.postForm<User>("/auth/registration", {}, { username, email, password }),
+        onMutate: () => setDisabled(true),
+        onSuccess: () => tokenMutation.mutate(),
+        onError: (error) => {
+            setDisabled(false);
+            setErrorMsg(error.message);
+        },
+    });
+
     if (loggedIn) {
         return <Navigate to="/" />;
     }
-    const handleSubmit = (e) => {
+
+    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        if(password !== passwordValidate){
+        if (password !== passwordValidate) {
             setErrorMsg("Passwords do not match");
             return;
         }
-        mutation.mutate();
+        registerMutation.mutate();
     };
 
     const buttonDisabled = !username || !password || !email || !passwordValidate || disabled;
@@ -100,12 +98,11 @@ function RegistrationForm(){
     );
 }
 
-
 export default function RegisterPage() {
-    return(
+    return (
         <div>
             <h1 className={"text-center font-extrabold text-4xl pb-4 pt-4"}>Pony Express</h1>
             <RegistrationForm />
         </div>
-    )
+    );
 }

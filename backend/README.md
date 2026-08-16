@@ -24,6 +24,25 @@ GET http://127.0.0.1:8000/status
 HTTP/1.1 204 No Content
 ```
 
+### Configuration
+
+Settings live in `backend/settings.py`. The database path resolves relative to the
+`backend` package, so the server opens the same database wherever it is launched from.
+Two values can be overridden by environment variable:
+
+- `DB_URL` - SQLAlchemy url, defaults to `backend/database/development.db`
+- `JWT_SECRET_KEY` - signing key, defaults to a development value
+- `DB_ECHO` - set to `1` to log every SQL statement
+
+### Realtime
+
+`backend/realtime.py` holds a `ConnectionManager` that tracks the WebSockets watching
+each chat. `WS /chats/{chat_id}/ws?token=...` streams `message_new`, `message_edit`,
+`message_delete`, `member_join` and `member_leave` events to members of that chat; the
+token goes in the query string because a browser cannot set headers on a WebSocket
+handshake. Connections are held per process, so running more than one worker needs a
+shared broker behind the same interface.
+
 You may also view the documentation:
 
 - SwaggerUI: `http:127.0.0.1:8000/docs`

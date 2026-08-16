@@ -28,6 +28,11 @@ def get_chat_members(session: Session, chat_id: int) -> list[DBAccount]:
     results = session.exec(stmt)
     return list(results)
 
+def get_account_chats(session: Session, account_id: int) -> list[DBChat]:
+    stmt = select(DBChat).join(DBChatMembership, DBChatMembership.chat_id == DBChat.id).where(DBChatMembership.account_id == account_id)
+    results = session.exec(stmt)
+    return list(results)
+
 def create_chat(session: Session, chat: ChatCreate, user: DBAccount) -> DBChat:
     chat_name = chat.name
     owner_id = chat.owner_id
@@ -54,8 +59,9 @@ def create_chat(session: Session, chat: ChatCreate, user: DBAccount) -> DBChat:
     return db_chat
 
 
-def update_chat(session: Session, chat_id: int, update: ChatUpdate) -> DBChat:
+def update_chat(session: Session, chat_id: int, update: ChatUpdate, user: DBAccount) -> DBChat:
     chat = get_by_id(session, chat_id)
+    _require_chat_owner(chat, user)
     ## Logic for updating chat name if necessary
     if update.name is not None:
         if _validate_chat_exists(session, update.name) is not None and chat.name != update.name:
@@ -72,8 +78,9 @@ def update_chat(session: Session, chat_id: int, update: ChatUpdate) -> DBChat:
     session.refresh(chat)
     return chat
 
-def delete_chat(session: Session, chat_id: int):
+def delete_chat(session: Session, chat_id: int, user: DBAccount):
     chat = get_by_id(session, chat_id)
+    _require_chat_owner(chat, user)
     session.delete(chat)
     session.commit()
 
@@ -90,29 +97,39 @@ def add_chat_message(session: Session, chat_id: int, message: CreateMessage, use
     )
     session.add(db_message)
     session.commit()
+    ## commit expires the instance, and callers read its fields (id, created_at)
+    session.refresh(db_message)
     return db_message
 
-def update_chat_message(session: Session, chat_id: int, message_id: int, update_message: UpdateMessage) -> DBMessage:
+def update_chat_message(session: Session, chat_id: int, message_id: int, update_message: UpdateMessage, user: DBAccount) -> DBMessage:
     get_by_id(session, chat_id) #for checking if chat exists
     message = _validate_message_in_chat(session, chat_id, message_id)
+    if message.account_id != user.id:
+        raise NotMessageAuthor(message_id)
     message.text = update_message.text
     session.add(message)
     session.commit()
     session.refresh(message)
     return message
 
-def delete_chat_message(session: Session, chat_id: int, message_id: int):
-    get_by_id(session, chat_id)
+def delete_chat_message(session: Session, chat_id: int, message_id: int, user: DBAccount):
+    chat = get_by_id(session, chat_id)
     message = _validate_message_in_chat(session, chat_id, message_id)
+    ## the chat owner can moderate any message, including ones whose author has left
+    if message.account_id != user.id and chat.owner_id != user.id:
+        raise NotMessageAuthor(message_id)
     session.delete(message)
     session.commit()
 
-def add_account_to_chat(session: Session, chat_id: int, response_account: AddAccountToChat) -> tuple[bool, DBChatMembership]:
+def add_account_to_chat(session: Session, chat_id: int, response_account: AddAccountToChat, user: DBAccount) -> tuple[bool, DBChatMembership]:
     account_id = response_account.account_id
+    chat = get_by_id(session, chat_id) ## make sure chat exists
+    ## anyone may join a chat themselves; only the owner may add somebody else
+    if account_id != user.id:
+        _require_chat_owner(chat, user)
     account = _validate_user_exists(session, account_id)
     if account is None:
         raise EntityNotFound("account", account_id)
-    get_by_id(session, chat_id) ## make sure chat exists
     members = get_chat_members(session, chat_id)
     if account not in members:
         db_chat_membership = DBChatMembership(
@@ -127,8 +144,11 @@ def add_account_to_chat(session: Session, chat_id: int, response_account: AddAcc
         membership = session.exec(stmt).first()
         return False, membership
 
-def delete_account_from_chat(session: Session, chat_id: int, account_id: int):
+def delete_account_from_chat(session: Session, chat_id: int, account_id: int, user: DBAccount):
     chat = get_by_id(session, chat_id)
+    ## anyone may leave a chat themselves; only the owner may remove somebody else
+    if account_id != user.id:
+        _require_chat_owner(chat, user)
     _validate_user_in_chat(session, chat_id, account_id)
     if chat.owner_id == account_id:
         raise OwnerRemoval
@@ -148,6 +168,10 @@ def delete_account_from_chat(session: Session, chat_id: int, account_id: int):
     session.delete(membership)
     session.commit()
 
+
+def _require_chat_owner(chat: DBChat, user: DBAccount) -> None:
+    if chat.owner_id != user.id:
+        raise NotChatOwner(chat.id)
 
 def _validate_message_in_chat(session: Session, chat_id: int, message_id: int):
     stmt = select(DBMessage).where(DBMessage.id == message_id).where(DBMessage.chat_id == chat_id)

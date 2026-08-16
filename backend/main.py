@@ -76,6 +76,14 @@ def handle_access_denied(request: Request, exc: AccessDeniedException):
 def handle_invalid_token(request: Request, exc: InvalidTokenException):
     return exc.response()
 
+@app.exception_handler(NotChatOwner)
+def handle_not_chat_owner(request: Request, exc: NotChatOwner):
+    return exc.response()
+
+@app.exception_handler(NotMessageAuthor)
+def handle_not_message_author(request: Request, exc: NotMessageAuthor):
+    return exc.response()
+
 
 for router in [accounts_router, chats_router, auth_router]:
     app.include_router(router)

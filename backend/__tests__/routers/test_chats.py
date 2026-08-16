@@ -150,11 +150,11 @@ def test_create_chat_duplicate_name_fail(setup_db, client, account_data, chat_da
         "message": "Duplicate value: chat with name=gamers already exists"
     }
 
-def test_update_chat_name(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
+def test_update_chat_name(setup_db, client, account_data, chat_data, message_data, chat_membership_data, jamaron_headers):
     request_data = {
         "name": "reformed_gamers",
     }
-    response = client.put("/chats/1", json=request_data)
+    response = client.put("/chats/1", json=request_data, headers=jamaron_headers)
     assert response.status_code == 200
     assert response.json() == {
         "id": 1,
@@ -162,11 +162,11 @@ def test_update_chat_name(setup_db, client, account_data, chat_data, message_dat
         "owner_id": 1
     }
 
-def test_update_chat_owner(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
+def test_update_chat_owner(setup_db, client, account_data, chat_data, message_data, chat_membership_data, jamaron_headers):
     request_data = {
         "owner_id": 2,
     }
-    response = client.put("/chats/1", json=request_data)
+    response = client.put("/chats/1", json=request_data, headers=jamaron_headers)
     assert response.status_code == 200
     assert response.json() == {
         "id": 1,
@@ -174,47 +174,47 @@ def test_update_chat_owner(setup_db, client, account_data, chat_data, message_da
         "owner_id": 2
     }
 
-def test_update_chat_name_fail(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
+def test_update_chat_name_fail(setup_db, client, account_data, chat_data, message_data, chat_membership_data, jamaron_headers):
     request_data = {
         "name":"theboys"
     }
-    response = client.put("/chats/1", json=request_data)
+    response = client.put("/chats/1", json=request_data, headers=jamaron_headers)
     assert response.status_code == 422
     assert response.json() == {
         "error": "duplicate_entity_value",
         "message": "Duplicate value: chat with name=theboys already exists"
     }
 
-def test_update_chat_owner_fail(setup_db, client, account_data, chat_membership_data):
+def test_update_chat_owner_fail(setup_db, client, account_data, chat_membership_data, authenticated_headers):
     request_data = {
         "owner_id": 1,
     }
-    response = client.put("/chats/2", json=request_data)
+    response = client.put("/chats/2", json=request_data, headers=authenticated_headers)
     assert response.status_code == 422
     assert response.json() == {
         "error": "chat_membership_required",
         "message": "Account with id=1 must be a member of chat with id=2"
     }
 
-def test_update_chat_does_not_exist_fail(setup_db, client, account_data, chat_membership_data):
+def test_update_chat_does_not_exist_fail(setup_db, client, account_data, chat_membership_data, jamaron_headers):
     request_data = {
         "owner_id": 1,
     }
-    response = client.put("/chats/7", json=request_data)
+    response = client.put("/chats/7", json=request_data, headers=jamaron_headers)
     assert response.status_code == 404
     assert response.json() == {
         "error": "entity_not_found",
         "message": "Unable to find chat with id=7"
     }
 
-def test_delete_chat(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
-    response = client.delete("/chats/1")
+def test_delete_chat(setup_db, client, account_data, chat_data, message_data, chat_membership_data, jamaron_headers):
+    response = client.delete("/chats/1", headers=jamaron_headers)
     assert response.status_code == 204
     response2 = client.get("/chats/1")
     assert response2.status_code == 404
 
-def test_delete_chat_does_not_exist_fail(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
-    response = client.delete("/chats/7")
+def test_delete_chat_does_not_exist_fail(setup_db, client, account_data, chat_data, message_data, chat_membership_data, jamaron_headers):
+    response = client.delete("/chats/7", headers=jamaron_headers)
     assert response.status_code == 404
     assert response.json() == {
         "error": "entity_not_found",
@@ -298,11 +298,11 @@ def test_add_message_not_authenticated(setup_db, client, account_data, message_d
     }
 
 
-def test_update_message_text(setup_db, client, account_data, message_data, chat_membership_data):
+def test_update_message_text(setup_db, client, account_data, message_data, chat_membership_data, authenticated_headers):
     request_data = {
         "text": "hi imaginary friends!",
     }
-    response = client.put("/chats/2/messages/3", json=request_data)
+    response = client.put("/chats/2/messages/3", json=request_data, headers=authenticated_headers)
     assert response.status_code == 200
     server_response = response.json()
     assert server_response["id"] == 3
@@ -310,53 +310,54 @@ def test_update_message_text(setup_db, client, account_data, message_data, chat_
     assert server_response["account_id"] == 2
     assert server_response["chat_id"] == 2
 
-def test_update_message_chat_does_not_exist(setup_db, client, account_data, message_data, chat_membership_data):
+def test_update_message_chat_does_not_exist(setup_db, client, account_data, message_data, chat_membership_data, jamaron_headers):
     request_data = {
         "text": "testing",
     }
-    response = client.put("/chats/4/messages/1", json=request_data)
+    response = client.put("/chats/4/messages/1", json=request_data, headers=jamaron_headers)
     assert response.status_code == 404
     assert response.json() == {
         "error": "entity_not_found",
         "message": "Unable to find chat with id=4"
     }
 
-def test_update_message_not_in_chat(setup_db, client, account_data, message_data, chat_membership_data):
+def test_update_message_not_in_chat(setup_db, client, account_data, message_data, chat_membership_data, jamaron_headers):
     request_data = {
         "text": "testing",
     }
-    response = client.put("/chats/2/messages/1", json=request_data)
+    response = client.put("/chats/2/messages/1", json=request_data, headers=jamaron_headers)
     assert response.status_code == 404
     assert response.json() == {
         "error": "entity_not_found",
         "message": "Unable to find message with id=1"
     }
 
-def test_delete_message(setup_db, client, account_data, message_data, chat_membership_data):
-    response = client.delete("/chats/1/messages/1")
+def test_delete_message(setup_db, client, account_data, message_data, chat_membership_data, jamaron_headers):
+    response = client.delete("/chats/1/messages/1", headers=jamaron_headers)
     assert response.status_code == 204
 
-def test_delete_message_chat_does_not_exist(setup_db, client, account_data, message_data, chat_membership_data):
-    response = client.delete("/chats/3/messages/1")
+def test_delete_message_chat_does_not_exist(setup_db, client, account_data, message_data, chat_membership_data, jamaron_headers):
+    response = client.delete("/chats/3/messages/1", headers=jamaron_headers)
     assert response.status_code == 404
     assert response.json() == {
         "error": "entity_not_found",
         "message": "Unable to find chat with id=3"
     }
 
-def test_delete_message_not_in_chat(setup_db, client, account_data, message_data, chat_membership_data):
-    response = client.delete("/chats/1/messages/10")
+def test_delete_message_not_in_chat(setup_db, client, account_data, message_data, chat_membership_data, jamaron_headers):
+    response = client.delete("/chats/1/messages/10", headers=jamaron_headers)
     assert response.status_code == 404
     assert response.json() == {
         "error": "entity_not_found",
         "message": "Unable to find message with id=10"
     }
 
-def test_add_account_to_chat(setup_db, client, account_data, message_data, chat_membership_data):
+def test_add_account_to_chat(setup_db, client, account_data, message_data, chat_membership_data, jamaron_headers):
+    ## jamaron joining chat 2 on their own behalf
     request_data = {
         "account_id": 1
     }
-    response = client.post("/chats/2/accounts", json=request_data)
+    response = client.post("/chats/2/accounts", json=request_data, headers=jamaron_headers)
     assert response.status_code == 201
     assert response.json() == {
         "chat_id": 2,
@@ -378,36 +379,38 @@ def test_add_account_to_chat(setup_db, client, account_data, message_data, chat_
         ]
     }
 
-def test_add_account_already_in_chat(setup_db, client, account_data, message_data, chat_membership_data):
+def test_add_account_already_in_chat(setup_db, client, account_data, message_data, chat_membership_data, jamaron_headers):
     request_data = {
         "account_id": 1
     }
-    response = client.post("/chats/1/accounts", json=request_data)
+    response = client.post("/chats/1/accounts", json=request_data, headers=jamaron_headers)
     assert response.status_code == 200
 
-def test_add_account_chat_does_not_exist(setup_db, client, account_data, message_data, chat_membership_data):
+def test_add_account_chat_does_not_exist(setup_db, client, account_data, message_data, chat_membership_data, jamaron_headers):
     request_data = {
         "account_id": 1
     }
-    response = client.post("/chats/4/accounts", json=request_data)
+    response = client.post("/chats/4/accounts", json=request_data, headers=jamaron_headers)
     assert response.status_code == 404
     assert response.json() == {
         "error": "entity_not_found",
         "message": "Unable to find chat with id=4"
     }
-def test_add_nonexistent_account_to_chat(setup_db, client, account_data, message_data, chat_membership_data):
+def test_add_nonexistent_account_to_chat(setup_db, client, account_data, message_data, chat_membership_data, jamaron_headers):
+    ## jamaron owns chat 1, so the request is authorized and fails on the missing account
     request_data = {
         "account_id": 8
     }
-    response = client.post("/chats/1/accounts", json=request_data)
+    response = client.post("/chats/1/accounts", json=request_data, headers=jamaron_headers)
     assert response.status_code == 404
     assert response.json() == {
         "error": "entity_not_found",
         "message": "Unable to find account with id=8"
     }
 
-def test_remove_account_from_chat(setup_db, client, account_data, message_data, chat_membership_data):
-    response = client.delete("/chats/1/accounts/2")
+def test_remove_account_from_chat(setup_db, client, account_data, message_data, chat_membership_data, authenticated_headers):
+    ## loldleman leaving chat 1 on their own behalf
+    response = client.delete("/chats/1/accounts/2", headers=authenticated_headers)
     assert response.status_code == 204
     response2 = client.get("/chats/1/messages")
     assert response2.status_code == 200
@@ -431,26 +434,128 @@ def test_remove_account_from_chat(setup_db, client, account_data, message_data, 
         ]
     }
 
-def test_remove_account_owner_of_chat_fail(setup_db, client, account_data, message_data, chat_membership_data):
-    response = client.delete("/chats/1/accounts/1")
+def test_remove_account_owner_of_chat_fail(setup_db, client, account_data, message_data, chat_membership_data, jamaron_headers):
+    response = client.delete("/chats/1/accounts/1", headers=jamaron_headers)
     assert response.status_code == 422
     assert response.json() == {
         "error": "chat_owner_removal",
         "message": "Unable to remove the owner of a chat"
     }
 
-def test_remove_account_not_in_chat_fail(setup_db, client, account_data, message_data, chat_membership_data):
-    response = client.delete("/chats/2/accounts/1")
+def test_remove_account_not_in_chat_fail(setup_db, client, account_data, message_data, chat_membership_data, jamaron_headers):
+    response = client.delete("/chats/2/accounts/1", headers=jamaron_headers)
     assert response.status_code == 422
     assert response.json() == {
         "error": "chat_membership_required",
         "message": "Account with id=1 must be a member of chat with id=2"
     }
 
-def test_remove_account_chat_does_not_exist(setup_db, client, account_data, message_data, chat_membership_data):
-    response = client.delete("/chats/4/accounts/1")
+def test_remove_account_chat_does_not_exist(setup_db, client, account_data, message_data, chat_membership_data, jamaron_headers):
+    response = client.delete("/chats/4/accounts/1", headers=jamaron_headers)
     assert response.status_code == 404
     assert response.json() == {
         "error": "entity_not_found",
         "message": "Unable to find chat with id=4"
     }
+
+
+## ---------------------------------------------------------------------------
+## authorization
+##
+## fixture data: jamaron(1) owns chat 1 and wrote message 1; loldleman(2) owns
+## chat 2 and wrote messages 2 and 3; john(3) owns nothing and joins no chat.
+## ---------------------------------------------------------------------------
+
+def test_update_chat_not_owner(setup_db, client, outsider_headers):
+    response = client.put("/chats/1", json={"name": "hijacked"}, headers=outsider_headers)
+    assert response.status_code == 403
+    assert response.json() == {
+        "error": "not_chat_owner",
+        "message": "Only the owner of chat with id=1 can perform this action"
+    }
+
+def test_update_chat_not_authenticated(setup_db, client):
+    response = client.put("/chats/1", json={"name": "hijacked"})
+    assert response.status_code == 403
+    assert response.json() == {
+        "error": "authentication_required",
+        "message": "Not authenticated"
+    }
+
+def test_delete_chat_not_owner(setup_db, client, outsider_headers):
+    response = client.delete("/chats/1", headers=outsider_headers)
+    assert response.status_code == 403
+    assert response.json() == {
+        "error": "not_chat_owner",
+        "message": "Only the owner of chat with id=1 can perform this action"
+    }
+
+def test_delete_chat_not_authenticated(setup_db, client):
+    response = client.delete("/chats/1")
+    assert response.status_code == 403
+    assert client.get("/chats/1").status_code == 200
+
+def test_update_message_not_author(setup_db, client, jamaron_headers):
+    ## message 2 belongs to loldleman, and owning the chat does not grant edit rights
+    response = client.put("/chats/1/messages/2", json={"text": "words in your mouth"}, headers=jamaron_headers)
+    assert response.status_code == 403
+    assert response.json() == {
+        "error": "not_message_author",
+        "message": "Only the author of message with id=2 can perform this action"
+    }
+
+def test_update_message_not_authenticated(setup_db, client):
+    response = client.put("/chats/1/messages/1", json={"text": "words in your mouth"})
+    assert response.status_code == 403
+
+def test_delete_message_not_author_nor_chat_owner(setup_db, client, authenticated_headers):
+    ## loldleman is a member of chat 1 but neither wrote message 1 nor owns the chat
+    response = client.delete("/chats/1/messages/1", headers=authenticated_headers)
+    assert response.status_code == 403
+    assert response.json() == {
+        "error": "not_message_author",
+        "message": "Only the author of message with id=1 can perform this action"
+    }
+
+def test_delete_message_chat_owner_may_moderate(setup_db, client, jamaron_headers):
+    ## jamaron owns chat 1, so may remove loldleman's message 2 from it
+    response = client.delete("/chats/1/messages/2", headers=jamaron_headers)
+    assert response.status_code == 204
+
+def test_delete_message_not_authenticated(setup_db, client):
+    response = client.delete("/chats/1/messages/1")
+    assert response.status_code == 403
+
+def test_add_account_to_chat_not_owner(setup_db, client, outsider_headers):
+    response = client.post("/chats/1/accounts", json={"account_id": 1}, headers=outsider_headers)
+    assert response.status_code == 403
+    assert response.json() == {
+        "error": "not_chat_owner",
+        "message": "Only the owner of chat with id=1 can perform this action"
+    }
+
+def test_add_account_to_chat_not_authenticated(setup_db, client):
+    response = client.post("/chats/1/accounts", json={"account_id": 3})
+    assert response.status_code == 403
+
+def test_self_join_chat(setup_db, client, outsider_headers):
+    ## anybody may add themselves to a chat they do not belong to
+    response = client.post("/chats/2/accounts", json={"account_id": 3}, headers=outsider_headers)
+    assert response.status_code == 201
+    assert response.json() == {"chat_id": 2, "account_id": 3}
+
+def test_remove_account_from_chat_not_owner(setup_db, client, outsider_headers):
+    response = client.delete("/chats/1/accounts/2", headers=outsider_headers)
+    assert response.status_code == 403
+    assert response.json() == {
+        "error": "not_chat_owner",
+        "message": "Only the owner of chat with id=1 can perform this action"
+    }
+
+def test_remove_account_from_chat_not_authenticated(setup_db, client):
+    response = client.delete("/chats/1/accounts/2")
+    assert response.status_code == 403
+
+def test_chat_owner_may_remove_member(setup_db, client, jamaron_headers):
+    response = client.delete("/chats/1/accounts/2", headers=jamaron_headers)
+    assert response.status_code == 204
