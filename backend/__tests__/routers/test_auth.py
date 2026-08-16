@@ -29,7 +29,7 @@ def test_login(setup_db, client, account_data, chat_data, message_data, chat_mem
     response = client.post("/auth/web/login", data=data)
     assert response.status_code == 204
     cookies = response.headers["set-cookie"]
-    assert "pony_express_token=" in cookies
+    assert "parley_token=" in cookies
 
 def test_login_incorrect_password(setup_db, client, account_data, chat_data, message_data, chat_membership_data):
     data = {

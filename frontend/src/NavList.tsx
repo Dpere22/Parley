@@ -3,16 +3,28 @@ import { useAccount, useMyChats } from "./queries";
 import { useAuth } from "./hooks";
 import type { Chat } from "./types";
 
-const linkClassName = ({ isActive }: { isActive: boolean }) =>
-    `block p-4 border-b last:border-none ${
-        isActive ? 'bg-pink-300 text-white' : 'bg-white text-black hover:bg-gray-100'
+const entryClassName = ({ isActive }: { isActive: boolean }) =>
+    `block px-4 py-3 border-b border-oak-dark/40 transition-colors ${
+        isActive
+            ? "bg-oak-dark/70 text-parchment-light border-l-4 border-l-gilt"
+            : "text-parchment/90 hover:bg-oak-dark/40 hover:text-parchment-light"
     }`;
 
 function ChatItem({ id, name }: Chat) {
     return (
-        <NavLink to={`/chats/${id}`} className={linkClassName}>
-            {name}
-        </NavLink>
+        <li>
+            <NavLink to={`/chats/${id}`} className={entryClassName}>
+                <span className="heading text-sm">{name}</span>
+            </NavLink>
+        </li>
+    );
+}
+
+function SectionHeading({ children }: { children: string }) {
+    return (
+        <h2 className="heading text-xs uppercase tracking-widest text-gilt-light bg-oak-dark/60 border-y border-gilt/40 px-4 py-2">
+            {children}
+        </h2>
     );
 }
 
@@ -28,35 +40,50 @@ export default function NavList() {
     };
 
     return (
-        <div>
-            <div className={"flex justify-center bg-pink-800 pb-3 pt-3"}>
-                <NavLink to={'/chats'} className={"text-xl text-white font-bold"}>Pony Express</NavLink>
+        <nav className="h-screen overflow-y-auto bg-oak/25">
+            <div className="banner py-5 px-3 text-center">
+                <NavLink to={"/chats"} className="block">
+                    <span className="carved font-script text-3xl text-gilt-light">
+                        Parley
+                    </span>
+                </NavLink>
+                <p className="carved heading text-[0.6rem] uppercase tracking-[0.3em] text-parchment/75 mt-1">
+                    Where counsel is taken
+                </p>
             </div>
-            <h1 className={"bg-gray-400 text-center text-xl font-bold pt-2 pb-2 border-b border-b-black"}>{account.username}</h1>
+
+            <div className="px-4 py-3 text-center border-b border-oak-dark/40">
+                <p className="heading text-[0.6rem] uppercase tracking-widest text-gilt">Bearing the seal of</p>
+                <p className="heading text-lg text-parchment-light">{account.username}</p>
+            </div>
+
             <ul>
                 <li>
-                    <NavLink to={`/settings`} className={linkClassName}>
-                        Settings
+                    <NavLink to={"/settings"} className={entryClassName}>
+                        <span className="heading text-sm">Chambers</span>
+                    </NavLink>
+                </li>
+                <li>
+                    <NavLink to={"/chats/browse"} className={entryClassName}>
+                        <span className="heading text-sm">The Great Hall</span>
                     </NavLink>
                 </li>
                 <li>
                     <button
                         onClick={handleLogout}
-                        className="block w-full p-4 border-b last:border-none text-left bg-white text-black hover:bg-gray-100 cursor-pointer"
+                        className="block w-full text-left px-4 py-3 border-b border-oak-dark/40 text-parchment/90 hover:bg-oak-dark/40 hover:text-parchment-light cursor-pointer transition-colors"
                     >
-                        Logout
+                        <span className="heading text-sm">Take Leave</span>
                     </button>
                 </li>
             </ul>
-            <h1 className={"bg-gray-400 text-center text-xl font-bold pt-2 pb-2 border-b border-b-black"}>Chats</h1>
+
+            <SectionHeading>Thy Councils</SectionHeading>
             <ul>
                 {chats.map((chat) => (
                     <ChatItem key={chat.id} {...chat} />
                 ))}
             </ul>
-            <NavLink to={'/chats/browse'} className={linkClassName}>
-                Browse chats
-            </NavLink>
-        </div>
+        </nav>
     );
 }

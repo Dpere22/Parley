@@ -1,4 +1,4 @@
-# PonyExpress - a messaging application
+# Parley - a messaging application
 
 ## Backend
 

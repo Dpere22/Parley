@@ -7,9 +7,9 @@ interface FormProps {
 
 export default function Form({ onSubmit, children }: FormProps) {
     const className = [
-        "flex flex-col",
-        "border border-black rounded",
-        "space-y-4 w-96 mx-auto p-4",
+        "parchment parchment-curl",
+        "flex flex-col space-y-4 w-96 mx-auto p-6",
+        "border-2 border-oak-dark rounded-sm shadow-2xl",
     ].join(" ");
     return (
         <form className={className} onSubmit={onSubmit}>

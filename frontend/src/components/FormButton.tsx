@@ -6,8 +6,8 @@ interface FormButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 export default function FormButton({ text, disabled, ...options }: FormButtonProps) {
     const className =
-        "border border-black rounded px-4 py-2" +
-        (disabled ? " bg-gray-400 italic" : " hover:bg-lime-600 cursor-pointer");
+        "btn-seal px-4 py-2 uppercase text-sm" +
+        (disabled ? "" : " cursor-pointer");
 
     return (
         <button type="submit" className={className} disabled={disabled} {...options}>

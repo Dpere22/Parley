@@ -26,13 +26,13 @@ function JoinButton({ chat }: { chat: Chat }) {
     });
 
     return (
-        <div className="flex items-center gap-2">
-            {errorMsg && <span className="text-xs text-amber-700">{errorMsg}</span>}
+        <div className="flex items-center gap-2 shrink-0">
+            {errorMsg && <span className="text-xs text-crimson-light italic">{errorMsg}</span>}
             <button
                 onClick={() => mutation.mutate()}
-                className="text-sm border border-black rounded px-3 py-1 bg-pink-300 text-white hover:bg-pink-400 cursor-pointer"
+                className="btn-seal px-4 py-1 text-xs uppercase cursor-pointer"
             >
-                Join
+                Enter
             </button>
         </div>
     );
@@ -49,32 +49,43 @@ export default function BrowseChats() {
     );
 
     return (
-        <div className={"flex"}>
-            <div className={"w-1/4 border-r border-gray-300"}>
+        <div className={"flex hall min-h-screen"}>
+            <div className={"w-1/4 min-w-0 border-r-2 border-oak-dark"}>
                 <NavList />
             </div>
-            <div className={"w-3/4 pr-4 pl-4 pt-4 pb-8 bg-white h-screen overflow-y-auto"}>
-                <h1 className={"text-3xl font-bold text-center pb-4"}>Browse chats</h1>
-                <div className="max-w-2xl mx-auto space-y-4">
+            <div className={"w-3/4 min-w-0 px-6 pt-8 pb-8 h-screen overflow-y-auto"}>
+                <h1 className={"heading text-3xl text-center text-gilt-light pb-2"}>The Great Hall</h1>
+                <p className="text-center text-sm italic text-parchment/60">
+                    Every council in the realm
+                </p>
+                <hr className="rule-gilt w-80 mx-auto my-6" />
+
+                <div className="max-w-2xl mx-auto space-y-6">
                     <CreateChat />
-                    {error && <p className="text-sm text-amber-700">{error.message}</p>}
-                    <ul className="border border-black rounded divide-y divide-gray-300">
-                        {chats.map((chat) => (
-                            <li key={chat.id} className="flex justify-between items-center p-3">
-                                <span>{chat.name}</span>
-                                {joinedIds.has(chat.id) ? (
-                                    <button
-                                        onClick={() => navigate(`/chats/${chat.id}`)}
-                                        className="text-sm border border-black rounded px-3 py-1 hover:bg-gray-100 cursor-pointer"
-                                    >
-                                        Open
-                                    </button>
-                                ) : (
-                                    <JoinButton chat={chat} />
-                                )}
-                            </li>
-                        ))}
-                    </ul>
+                    {error && <p className="text-sm text-crimson-light italic">{error.message}</p>}
+
+                    <div className="parchment parchment-curl border-2 border-oak-dark rounded-sm shadow-xl px-6 py-2">
+                        <ul>
+                            {chats.map((chat) => (
+                                <li
+                                    key={chat.id}
+                                    className="scroll-entry flex justify-between items-center gap-4 py-3"
+                                >
+                                    <span className="heading text-base min-w-0 truncate">{chat.name}</span>
+                                    {joinedIds.has(chat.id) ? (
+                                        <button
+                                            onClick={() => navigate(`/chats/${chat.id}`)}
+                                            className="btn-iron px-4 py-1 text-xs uppercase cursor-pointer shrink-0"
+                                        >
+                                            Attend
+                                        </button>
+                                    ) : (
+                                        <JoinButton chat={chat} />
+                                    )}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>

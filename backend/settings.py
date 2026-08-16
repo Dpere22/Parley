@@ -20,12 +20,12 @@ class Settings(BaseSettings):
     jwt_secret_key: str
 
 settings = Settings(
-    app_title = "pony-express",
-    app_description = "API to manage pony express",
+    app_title = "parley",
+    app_description = "API to manage parley",
     db_url = os.environ.get("DB_URL", default = f"sqlite:///{_default_db_path}"),
     db_echo = os.environ.get("DB_ECHO", default = "").lower() in ("1", "true", "yes"),
     jwt_algorithm = "HS256",
-    jwt_cookie_key = "pony_express_token",
+    jwt_cookie_key = "parley_token",
     jwt_duration = 3600,
     jwt_issuer = "http://127.0.0.1",
     jwt_secret_key=os.environ.get("JWT_SECRET_KEY", default = "jwt-dev-key"),

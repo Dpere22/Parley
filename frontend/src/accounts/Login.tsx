@@ -9,16 +9,20 @@ import api, { type ApiError } from "../api";
 import type { AccessToken } from "../types";
 
 function Error({ message }: { message: string }) {
-    return <p className="text-amber-800 text-sm">{message}</p>;
+    return <p className="text-crimson-light text-sm italic">{message}</p>;
 }
 
 export default function LoginPage() {
     return (
-        <div className={"pt-4"}>
-            <h1 className={"text-center font-extrabold text-4xl pb-2"}>Pony Express</h1>
-            <div className={"pt-4"}>
-                <Login />
-            </div>
+        <div className={"hall min-h-screen flex flex-col items-center justify-center py-12 px-4"}>
+            <h1 className={"font-script text-6xl text-gilt-light text-center drop-shadow-lg"}>
+                Parley
+            </h1>
+            <p className="heading text-xs uppercase tracking-[0.4em] text-parchment/60 mt-3 mb-2 text-center">
+                Where counsel is taken
+            </p>
+            <hr className="rule-gilt w-72 my-6" />
+            <Login />
         </div>
     );
 }
@@ -53,6 +57,8 @@ function Login() {
 
     return (
         <Form onSubmit={handleSubmit}>
+            <h2 className="heading text-xl text-center text-ink">Present Thy Seal</h2>
+            <hr className="rule-gilt" />
             <FormInput
                 id="username"
                 type="text"
@@ -70,8 +76,10 @@ function Login() {
                 setValue={setPassword}
             />
             {errorMsg && <Error message={errorMsg} />}
-            <FormButton text="login" disabled={buttonDisabled} />
-            <Link to="/register" className={"text-pink-600 underline"}>Register</Link>
+            <FormButton text="Enter" disabled={buttonDisabled} />
+            <Link to="/register" className={"heading text-xs uppercase text-center text-ink-soft hover:text-crimson underline decoration-gilt underline-offset-4"}>
+                No seal yet? Petition for one
+            </Link>
         </Form>
     );
 }

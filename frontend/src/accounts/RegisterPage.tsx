@@ -9,7 +9,7 @@ import FormButton from "../components/FormButton";
 import type { AccessToken, User } from "../types";
 
 function Error({ message }: { message: string }) {
-    return <p className="text-amber-800 text-sm">{message}</p>;
+    return <p className="text-crimson-light text-sm italic">{message}</p>;
 }
 
 function RegistrationForm() {
@@ -59,6 +59,8 @@ function RegistrationForm() {
 
     return (
         <Form onSubmit={handleSubmit}>
+            <h2 className="heading text-xl text-center text-ink">Petition for a Seal</h2>
+            <hr className="rule-gilt" />
             <FormInput
                 id="username"
                 type="text"
@@ -92,16 +94,24 @@ function RegistrationForm() {
                 setValue={setPasswordValidate}
             />
             {errorMsg && <Error message={errorMsg} />}
-            <FormButton text="Register" disabled={buttonDisabled} />
-            <Link to="/login" className={"text-pink-600 underline"}>Login</Link>
+            <FormButton text="Petition" disabled={buttonDisabled} />
+            <Link to="/login" className={"heading text-xs uppercase text-center text-ink-soft hover:text-crimson underline decoration-gilt underline-offset-4"}>
+                Already sealed? Enter here
+            </Link>
         </Form>
     );
 }
 
 export default function RegisterPage() {
     return (
-        <div>
-            <h1 className={"text-center font-extrabold text-4xl pb-4 pt-4"}>Pony Express</h1>
+        <div className={"hall min-h-screen flex flex-col items-center justify-center py-12 px-4"}>
+            <h1 className={"font-script text-6xl text-gilt-light text-center drop-shadow-lg"}>
+                Parley
+            </h1>
+            <p className="heading text-xs uppercase tracking-[0.4em] text-parchment/60 mt-3 mb-2 text-center">
+                Where counsel is taken
+            </p>
+            <hr className="rule-gilt w-72 my-6" />
             <RegistrationForm />
         </div>
     );
