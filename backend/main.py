@@ -1,4 +1,4 @@
-"""PonyExpress backend API application.
+"""Parley backend API application.
 
 Args:
     app (FastAPI): The FastAPI application
@@ -27,7 +27,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="PonyExpress Backend",
+    title="Parley Backend",
     summary="Get info from database",
     lifespan=lifespan,
 )

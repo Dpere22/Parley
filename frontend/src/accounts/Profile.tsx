@@ -11,11 +11,11 @@ import NavList from "../NavList";
 import type { User } from "../types";
 
 function Error({ message }: { message: string }) {
-    return <p className="text-xs text-amber-700">{message}</p>;
+    return <p className="text-xs text-crimson-light italic">{message}</p>;
 }
 
 function Success({ message }: { message: string }) {
-    return <p className="text-xs text-lime-600">{message}</p>;
+    return <p className="text-xs text-moss italic">{message}</p>;
 }
 
 function UpdateForm() {
@@ -53,7 +53,8 @@ function UpdateForm() {
     return (
         <section>
             <Form onSubmit={handleSubmit}>
-                <h1 className="text-xl font-bold text-center">update account</h1>
+                <h1 className="heading text-xl text-center">Amend Thy Title</h1>
+                <hr className="rule-gilt" />
                 <FormInput
                     id="username"
                     type="text"
@@ -70,7 +71,7 @@ function UpdateForm() {
                     value={email}
                     setValue={setEmail}
                 />
-                <FormButton text="update account" />
+                <FormButton text="Set it down" />
                 {errorMsg && <Error message={errorMsg} />}
                 {successMsg && <Success message={successMsg} />}
             </Form>
@@ -115,7 +116,8 @@ function UpdatePasswordForm() {
 
     return (
         <Form onSubmit={handleSubmit}>
-            <h1 className="text-xl font-bold text-center">update password</h1>
+            <h1 className="heading text-xl text-center">Change Thy Watchword</h1>
+            <hr className="rule-gilt" />
             <FormInput
                 id="old_password"
                 type="password"
@@ -142,7 +144,7 @@ function UpdatePasswordForm() {
             />
             {errorMsg && <Error message={errorMsg} />}
             {successMsg && <Success message={successMsg} />}
-            <FormButton text="update password" disabled={buttonDisabled} />
+            <FormButton text="Reforge it" disabled={buttonDisabled} />
         </Form>
     );
 }
@@ -161,9 +163,9 @@ function LogoutButton() {
         <div>
             <button
                 onClick={handleLogout}
-                className="cursor-pointer border border-black rounded p-2 hover:bg-red-400 w-full"
+                className="btn-iron cursor-pointer p-2 w-full text-sm uppercase"
             >
-                logout
+                Take leave
             </button>
         </div>
     );
@@ -190,9 +192,9 @@ function DeleteAccountButton() {
         <div>
             <button
                 onClick={() => mutation.mutate()}
-                className="cursor-pointer border border-red-600 rounded p-2 hover:bg-red-800 w-full"
+                className="btn-seal cursor-pointer p-2 w-full text-sm uppercase"
             >
-                delete account
+                Burn thy seal
             </button>
             {errorMsg && <Error message={errorMsg} />}
         </div>
@@ -201,8 +203,9 @@ function DeleteAccountButton() {
 
 function AccountButtons() {
     return (
-        <div className="flex flex-col border border-black rounded space-y-4 w-96 mx-auto p-4">
-            <h1 className="text-xl font-bold text-center">account</h1>
+        <div className="parchment parchment-curl flex flex-col border-2 border-oak-dark rounded-sm shadow-2xl space-y-4 w-96 mx-auto p-6">
+            <h1 className="heading text-xl text-center">Thy Standing</h1>
+            <hr className="rule-gilt" />
             <LogoutButton />
             <DeleteAccountButton />
         </div>
@@ -221,12 +224,13 @@ function Account() {
 
 export default function Profile() {
     return (
-        <div className={"flex"}>
-            <div className={"w-1/4 border-r border-gray-300"}>
+        <div className={"flex hall min-h-screen"}>
+            <div className={"w-1/4 min-w-0 border-r-2 border-oak-dark"}>
                 <NavList />
             </div>
-            <div className={"w-3/4 pr-4 pl-4 pt-4 pb-8 bg-white h-screen"}>
-                <h1 className={"text-3xl font-bold text-center pb-4"}>Settings</h1>
+            <div className={"w-3/4 min-w-0 px-6 pt-8 pb-8 h-screen overflow-y-auto"}>
+                <h1 className={"heading text-3xl text-center text-gilt-light pb-2"}>The Chambers</h1>
+                <hr className="rule-gilt w-80 mx-auto mb-6" />
                 <Account />
             </div>
         </div>

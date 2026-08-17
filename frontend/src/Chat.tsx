@@ -31,7 +31,7 @@ interface MessageItemProps {
 
 function MessageItem({ msg, usernameMap, account_id, chat_id, isChatOwner }: MessageItemProps) {
     const [isEditing, setIsEditing] = useState(false);
-    const username = msg.account_id === null ? '[removed]' : usernameMap[msg.account_id] || '[removed]';
+    const username = msg.account_id === null ? 'one departed' : usernameMap[msg.account_id] || 'one departed';
     const time = new Date(msg.created_at).toLocaleString();
     const isAuthor = msg.account_id === account_id;
     const { headers } = useAuth();
@@ -44,69 +44,67 @@ function MessageItem({ msg, usernameMap, account_id, chat_id, isChatOwner }: Mes
     });
 
     return (
-        <li className="py-4">
-            <div className="flex flex-col border border-gray-600 p-2 rounded-lg">
-                <div className="flex justify-between">
-                    <div className="text-pink-950 text-sm">{username}</div>
-                    <div className="text-sm">{time}</div>
-                </div>
-
-                <div className="flex justify-between items-start mt-2">
-                    {/* min-w-0 is what lets the text wrap: a flex item defaults to
-                        min-width:auto, so without it this div grows to fit the longest
-                        line instead of shrinking and letting the text break. */}
-                    <div className="flex-1 min-w-0">
-                        {isEditing ? (
-                            <EditMessageField
-                                current_message={msg.text}
-                                message_id={msg.id}
-                                chat_id={chat_id}
-                                onFinish={() => setIsEditing(false)}
-                            />
-                        ) : (
-                            // pre-wrap so the line breaks a sender typed are kept, and
-                            // break-words so an unbroken run of characters cannot widen the row
-                            <span className="whitespace-pre-wrap break-words">{msg.text}</span>
-                        )}
+        <li className="scroll-entry py-4">
+            <div className="flex justify-between items-start gap-4">
+                {/* min-w-0 is what lets the text wrap: a flex item defaults to
+                    min-width:auto, so without it this div grows to fit the longest
+                    line instead of shrinking and letting the text break. */}
+                <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-3 mb-1">
+                        <span className="heading text-sm text-crimson">{username}</span>
+                        <span className="text-xs italic text-ink-faded">{time}</span>
                     </div>
 
-                    {(isAuthor || isChatOwner) && (
-                        <div className="flex gap-2 ml-4">
-                            {isAuthor && (
-                                <button
-                                    className="text-xs hover:bg-gray-200 border border-black rounded py-1 px-2 cursor-pointer"
-                                    onClick={() => {
-                                        if (isEditing) {
-                                            document
-                                                .getElementById(`editMessageField-${msg.id}`)
-                                                ?.closest("form")
-                                                ?.requestSubmit();
-                                        } else {
-                                            setIsEditing(true);
-                                        }
-                                    }}
-                                >
-                                    {isEditing ? "Save" : "Edit"}
-                                </button>
-                            )}
-                            {isEditing ? (
-                                <button
-                                    className="text-xs text-gray-600 hover:underline cursor-pointer"
-                                    onClick={() => setIsEditing(false)}
-                                >
-                                    Cancel
-                                </button>
-                            ) : (
-                                <button
-                                    className="text-xs hover:bg-red-500 border border-black rounded py-1 px-2 cursor-pointer"
-                                    onClick={() => deleteMutation.mutate()}
-                                >
-                                    Delete
-                                </button>
-                            )}
-                        </div>
+                    {isEditing ? (
+                        <EditMessageField
+                            current_message={msg.text}
+                            message_id={msg.id}
+                            chat_id={chat_id}
+                            onFinish={() => setIsEditing(false)}
+                        />
+                    ) : (
+                        // pre-wrap so the line breaks a sender typed are kept, and
+                        // break-words so an unbroken run of characters cannot widen the row
+                        <span className="whitespace-pre-wrap break-words leading-relaxed">{msg.text}</span>
                     )}
                 </div>
+
+                {(isAuthor || isChatOwner) && (
+                    <div className="flex gap-2 shrink-0">
+                        {isAuthor && (
+                            <button
+                                className="btn-margin px-2 py-1 cursor-pointer"
+                                onClick={() => {
+                                    if (isEditing) {
+                                        document
+                                            .getElementById(`editMessageField-${msg.id}`)
+                                            ?.closest("form")
+                                            ?.requestSubmit();
+                                    } else {
+                                        setIsEditing(true);
+                                    }
+                                }}
+                            >
+                                {isEditing ? "Seal" : "Amend"}
+                            </button>
+                        )}
+                        {isEditing ? (
+                            <button
+                                className="btn-margin px-2 py-1 cursor-pointer"
+                                onClick={() => setIsEditing(false)}
+                            >
+                                Abandon
+                            </button>
+                        ) : (
+                            <button
+                                className="btn-margin px-2 py-1 cursor-pointer"
+                                onClick={() => deleteMutation.mutate()}
+                            >
+                                Strike
+                            </button>
+                        )}
+                    </div>
+                )}
             </div>
         </li>
     );
@@ -175,7 +173,7 @@ function EditMessageField({ current_message, message_id, chat_id, onFinish }: Ed
                 onKeyDown={handleKeyDown}
                 value={text}
                 autoComplete={"off"}
-                className={'border border-black px-2 py-1 rounded w-full resize-none overflow-y-auto leading-6'}
+                className={'field-ink px-2 py-1 w-full resize-none overflow-y-auto leading-6'}
             />
         </form>
     );
@@ -217,39 +215,37 @@ function ChatHeader({ chat_id, isMember, connected }: ChatHeaderProps) {
     });
 
     return (
-        <div className="flex justify-between items-center border-b border-gray-300 py-3">
-            <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold">{chat.name}</h1>
+        <div className="flex justify-between items-center gap-4 pb-3">
+            <div className="flex items-baseline gap-3 min-w-0">
+                <h1 className="heading text-2xl text-gilt-light truncate">{chat.name}</h1>
                 {isMember && (
                     <span
-                        title={connected ? "live" : "reconnecting..."}
-                        className={`inline-block h-2 w-2 rounded-full ${
-                            connected ? "bg-lime-500" : "bg-gray-400"
+                        title={connected ? "the rider is at the gate" : "awaiting the rider..."}
+                        className={`inline-block h-2.5 w-2.5 rounded-full shrink-0 ${
+                            connected
+                                ? "bg-moss shadow-[0_0_6px_2px_rgba(120,160,80,0.6)]"
+                                : "bg-ink-faded"
                         }`}
                     />
                 )}
             </div>
-            <div className="flex items-center gap-3">
-                {errorMsg && <span className="text-xs text-amber-700">{errorMsg}</span>}
+            <div className="flex items-center gap-3 shrink-0">
+                {errorMsg && <span className="text-xs text-crimson-light italic">{errorMsg}</span>}
                 {isMember ? (
                     <button
                         onClick={() => leaveMutation.mutate()}
                         disabled={isOwner}
-                        title={isOwner ? "the owner of a chat cannot leave it" : undefined}
-                        className={`text-sm border border-black rounded px-3 py-1 ${
-                            isOwner
-                                ? "bg-gray-200 text-gray-500 cursor-not-allowed"
-                                : "hover:bg-red-400 cursor-pointer"
-                        }`}
+                        title={isOwner ? "a lord may not abandon their own council" : undefined}
+                        className={`btn-iron px-3 py-1 text-xs uppercase ${isOwner ? "" : "cursor-pointer"}`}
                     >
-                        Leave
+                        Depart
                     </button>
                 ) : (
                     <button
                         onClick={() => joinMutation.mutate()}
-                        className="text-sm border border-black rounded px-3 py-1 bg-pink-300 text-white hover:bg-pink-400 cursor-pointer"
+                        className="btn-seal px-3 py-1 text-xs uppercase cursor-pointer"
                     >
-                        Join
+                        Enter
                     </button>
                 )}
             </div>
@@ -327,24 +323,35 @@ function MessageList({ chat_id }: { chat_id: number }) {
     const isChatOwner = chat.owner_id === account.id;
 
     return (
-        <div className={"pb-5 flex flex-col h-screen"}>
+        <div className={"pb-5 pt-4 flex flex-col h-screen"}>
             <ChatHeader chat_id={chat_id} isMember={isMember} connected={connected} />
-            {/* pr-3 keeps the message cards clear of the scrollbar instead of ending
-                flush against it. ChatForm carries the same padding so the compose row
-                stays aligned with the messages above it. */}
-            <ul ref={containerRef} onScroll={handleScroll} className={`overflow-y-scroll flex-1 pr-3`}>
-                {messageList.map((message) => (
-                    <MessageItem
-                        key={message.id}
-                        msg={message}
-                        usernameMap={usernameMap}
-                        account_id={account.id}
-                        chat_id={chat_id}
-                        isChatOwner={isChatOwner}
-                    />
-                ))}
-            </ul>
-            <div>
+
+            {/* The scroll itself: a turned rod at either end with parchment between. */}
+            <div className="flex-1 min-h-0 flex flex-col px-2">
+                <div className="scroll-rod shrink-0" />
+                {/* pr-3 keeps the entries clear of the scrollbar instead of ending flush
+                    against it. ChatForm carries the same padding so the compose row
+                    stays aligned with the messages above it. */}
+                <ul
+                    ref={containerRef}
+                    onScroll={handleScroll}
+                    className={"parchment parchment-curl flex-1 min-h-0 overflow-y-scroll px-8 py-2 pr-3"}
+                >
+                    {messageList.map((message) => (
+                        <MessageItem
+                            key={message.id}
+                            msg={message}
+                            usernameMap={usernameMap}
+                            account_id={account.id}
+                            chat_id={chat_id}
+                            isChatOwner={isChatOwner}
+                        />
+                    ))}
+                </ul>
+                <div className="scroll-rod shrink-0" />
+            </div>
+
+            <div className="px-2">
                 <ChatForm sendEnabled={isMember} chat_id={chat_id} account_id={account.id} />
             </div>
         </div>
@@ -399,9 +406,9 @@ function ChatForm({ sendEnabled, chat_id, account_id }: ChatFormProps) {
     }, [text]);
 
     return (
-        <form onSubmit={handleSubmit} className={"pt-3 pr-3"}>
+        <form onSubmit={handleSubmit} className={"pt-4 pr-3"}>
             <label htmlFor="messageInput" className="sr-only">Message</label>
-            <div className="flex gap-2 items-end">
+            <div className="flex gap-3 items-end">
                 <textarea
                     id="messageInput"
                     ref={textareaRef}
@@ -409,23 +416,19 @@ function ChatForm({ sendEnabled, chat_id, account_id }: ChatFormProps) {
                     onChange={(e) => setMessage(e.target.value)}
                     onKeyDown={handleKeyDown}
                     value={text}
-                    placeholder={sendEnabled ? "Type a message..." : "Join this chat to send messages"}
+                    placeholder={sendEnabled ? "Set quill to parchment..." : "Enter this council to send word"}
                     disabled={!sendEnabled}
                     autoComplete={"off"}
-                    className={`border border-black px-3 py-2 rounded flex-1 resize-none overflow-y-auto leading-6 ${
-                        !sendEnabled ? "bg-gray-200 text-gray-500 cursor-not-allowed" : ""
-                    }`}
+                    className={"field-ink px-3 py-2 flex-1 resize-none overflow-y-auto leading-6"}
                 />
                 <button
                     type="submit"
                     disabled={!sendEnabled || !text.trim()}
-                    className={`px-4 py-2 rounded border border-black ${
-                        sendEnabled && text.trim()
-                            ? "bg-pink-300 text-white hover:bg-pink-400 cursor-pointer"
-                            : "bg-gray-200 text-gray-500 cursor-not-allowed"
+                    className={`btn-seal px-5 py-2 text-sm uppercase ${
+                        sendEnabled && text.trim() ? "cursor-pointer" : ""
                     }`}
                 >
-                    Send
+                    Dispatch
                 </button>
             </div>
         </form>
@@ -439,13 +442,13 @@ export default function Chat() {
     const chat_id = Number(id);
 
     return (
-        <div className={"flex"}>
-            <div className={"w-1/4 border-r border-gray-300"}>
+        <div className={"flex hall min-h-screen"}>
+            <div className={"w-1/4 min-w-0 border-r-2 border-oak-dark"}>
                 <NavList />
             </div>
             {/* min-w-0 for the same reason as the message row: without it a wide message
                 could push this panel past 75% instead of wrapping inside it. */}
-            <div className={"w-3/4 min-w-0 pr-4 pl-4 bg-white"}>
+            <div className={"w-3/4 min-w-0 px-6"}>
                 <MessageList chat_id={chat_id} />
             </div>
         </div>

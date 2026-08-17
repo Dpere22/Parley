@@ -1,1 +1,247 @@
 @import "tailwindcss";
+
+/* Medieval theme: aged parchment, oak, iron and ink. */
+@theme {
+    --color-parchment: #f2e3c2;
+    --color-parchment-light: #faf1da;
+    --color-parchment-dark: #e0cba0;
+    --color-parchment-shade: #c9ac79;
+
+    --color-ink: #2e1c0d;
+    --color-ink-soft: #5b4126;
+    --color-ink-faded: #8a6f4e;
+
+    --color-oak: #6b4423;
+    --color-oak-dark: #3b2412;
+    --color-oak-light: #8f6239;
+
+    --color-gilt: #a67c1a;
+    --color-gilt-light: #d4a83c;
+    --color-crimson: #7d1f22;
+    --color-crimson-light: #a33236;
+    --color-moss: #4a5d33;
+
+    --font-display: "Cinzel", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+    --font-body: "EB Garamond", Georgia, "Times New Roman", serif;
+    --font-script: "UnifrakturMaguntia", "Cinzel", serif;
+}
+
+/* Fibrous grain, reused by every parchment surface. */
+@layer base {
+    :root {
+        --parchment-fibre: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23f)' opacity='0.22'/%3E%3C/svg%3E");
+        --oak-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='40'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.04 0.9' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='40' filter='url(%23g)' opacity='0.35'/%3E%3C/svg%3E");
+        /* Fainter grain for large dark surfaces, which the heavier one washes out. */
+        --stone-grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='s'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23s)' opacity='0.09'/%3E%3C/svg%3E");
+    }
+
+    body {
+        font-family: var(--font-body);
+        color: var(--color-ink);
+        font-size: 1.0625rem;
+    }
+
+    /* Iron-and-parchment scrollbars, so the chrome matches the theme. */
+    * {
+        scrollbar-color: var(--color-oak) transparent;
+        scrollbar-width: thin;
+    }
+    *::-webkit-scrollbar {
+        width: 10px;
+    }
+    *::-webkit-scrollbar-track {
+        background: color-mix(in srgb, var(--color-oak-dark) 18%, transparent);
+    }
+    *::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, var(--color-oak-light), var(--color-oak-dark));
+        border-radius: 9999px;
+    }
+}
+
+@layer components {
+    /* The stone hall the whole application sits in. */
+    .hall {
+        background-color: #150e07;
+        background-image:
+            radial-gradient(ellipse at 50% -5%, rgba(166, 124, 26, 0.14), transparent 55%),
+            var(--stone-grain),
+            linear-gradient(165deg, #2c1e11 0%, #1b1209 55%, #100b05 100%);
+        background-attachment: fixed;
+    }
+
+    /* Any aged writing surface. */
+    .parchment {
+        background-color: var(--color-parchment);
+        background-image:
+            var(--parchment-fibre),
+            /* foxing and grime gathering at the edges */
+            radial-gradient(ellipse at 50% 50%, transparent 52%, rgba(150, 112, 60, 0.38) 100%),
+            radial-gradient(ellipse at 50% 45%, rgba(255, 251, 238, 0.6) 0%, transparent 68%),
+            linear-gradient(180deg, var(--color-parchment-dark) 0%, var(--color-parchment) 10%, var(--color-parchment) 90%, var(--color-parchment-dark) 100%);
+        color: var(--color-ink);
+    }
+
+    /* Parchment that has been rolled: darker, curling edges left and right. */
+    .parchment-curl {
+        box-shadow:
+            inset 26px 0 32px -26px rgba(59, 36, 18, 0.75),
+            inset -26px 0 32px -26px rgba(59, 36, 18, 0.75);
+    }
+
+    /* The turned wooden rod at either end of a scroll. */
+    .scroll-rod {
+        position: relative;
+        height: 22px;
+        border-radius: 9999px;
+        background-image:
+            var(--oak-grain),
+            linear-gradient(180deg, var(--color-oak-light) 0%, #7d5227 26%, var(--color-oak) 52%, var(--color-oak-dark) 100%);
+        box-shadow:
+            0 3px 10px rgba(0, 0, 0, 0.45),
+            inset 0 2px 2px rgba(226, 190, 138, 0.4),
+            inset 0 -3px 4px rgba(0, 0, 0, 0.45);
+    }
+    /* Finials capping each end of the rod. */
+    .scroll-rod::before,
+    .scroll-rod::after {
+        content: "";
+        position: absolute;
+        top: 50%;
+        width: 20px;
+        height: 30px;
+        transform: translateY(-50%);
+        border-radius: 9999px;
+        background-image: linear-gradient(180deg, var(--color-gilt-light) 0%, var(--color-gilt) 45%, #6d4f10 100%);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5), inset 0 1px 2px rgba(255, 235, 180, 0.55);
+    }
+    .scroll-rod::before {
+        left: -10px;
+    }
+    .scroll-rod::after {
+        right: -10px;
+    }
+
+    /* A ruled entry on the scroll, separated by a faint scribe's line. */
+    .scroll-entry + .scroll-entry {
+        border-top: 1px solid color-mix(in srgb, var(--color-ink-faded) 45%, transparent);
+    }
+
+    .heading {
+        font-family: var(--font-display);
+        letter-spacing: 0.06em;
+    }
+
+    /* A single dressed stone slab: two soft washes for the unevenness of the face,
+       one gradient for the light falling down it, and a bevel at the edges. */
+    .banner {
+        background-color: #6b665e;
+        background-image:
+            radial-gradient(120% 90% at 28% 12%, rgba(255, 255, 255, 0.15), transparent 62%),
+            radial-gradient(100% 85% at 82% 95%, rgba(0, 0, 0, 0.3), transparent 66%),
+            linear-gradient(180deg, #7b766d 0%, #655f58 58%, #4d4942 100%);
+        border-top: 2px solid var(--color-gilt);
+        border-bottom: 2px solid var(--color-gilt);
+        color: var(--color-parchment-light);
+        box-shadow:
+            0 4px 12px rgba(0, 0, 0, 0.5),
+            inset 0 1px 0 rgba(255, 255, 255, 0.22),
+            inset 0 -2px 6px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Lettering cut into stone rather than printed on it. */
+    .carved {
+        text-shadow:
+            0 2px 2px rgba(0, 0, 0, 0.75),
+            0 -1px 0 rgba(255, 255, 255, 0.18);
+    }
+
+    /* Wax-seal styled action button. */
+    .btn-seal {
+        font-family: var(--font-display);
+        letter-spacing: 0.08em;
+        color: var(--color-parchment-light);
+        background-image: linear-gradient(180deg, var(--color-crimson-light) 0%, var(--color-crimson) 55%, #5c1618 100%);
+        border: 1px solid #4a1214;
+        border-radius: 0.25rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 210, 210, 0.35);
+    }
+    .btn-seal:hover:not(:disabled) {
+        background-image: linear-gradient(180deg, #b93b40 0%, #8d2427 55%, #661a1c 100%);
+    }
+    .btn-seal:disabled {
+        background-image: linear-gradient(180deg, #9c9385 0%, #7d7466 100%);
+        border-color: #6b6355;
+        color: #ddd6c6;
+        box-shadow: none;
+    }
+
+    /* Secondary button, cast in iron rather than sealed in wax. */
+    .btn-iron {
+        font-family: var(--font-display);
+        letter-spacing: 0.06em;
+        color: var(--color-parchment-light);
+        background-image: linear-gradient(180deg, #6f6a60 0%, #4c4841 55%, #34312b 100%);
+        border: 1px solid #2a2722;
+        border-radius: 0.25rem;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.18);
+    }
+    .btn-iron:hover:not(:disabled) {
+        background-image: linear-gradient(180deg, #837d71 0%, #5a554d 55%, #3d3934 100%);
+    }
+    .btn-iron:disabled {
+        opacity: 0.55;
+        box-shadow: none;
+    }
+
+    /* Small marginal button for per-message actions. */
+    .btn-margin {
+        font-family: var(--font-display);
+        font-size: 0.7rem;
+        letter-spacing: 0.05em;
+        color: var(--color-ink-soft);
+        border: 1px solid color-mix(in srgb, var(--color-ink-faded) 60%, transparent);
+        border-radius: 0.2rem;
+        background-color: color-mix(in srgb, var(--color-parchment-light) 70%, transparent);
+    }
+    .btn-margin:hover {
+        color: var(--color-crimson);
+        border-color: var(--color-crimson);
+        background-color: color-mix(in srgb, var(--color-parchment-light) 95%, transparent);
+    }
+
+    /* Ink field: a ruled line to write on rather than a boxed input. */
+    .field-ink {
+        font-family: var(--font-body);
+        color: var(--color-ink);
+        background-color: color-mix(in srgb, var(--color-parchment-light) 80%, transparent);
+        border: 1px solid var(--color-ink-faded);
+        border-radius: 0.2rem;
+    }
+    .field-ink::placeholder {
+        color: color-mix(in srgb, var(--color-ink-faded) 85%, transparent);
+        font-style: italic;
+    }
+    .field-ink:focus {
+        outline: none;
+        border-color: var(--color-gilt);
+        box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-gilt) 35%, transparent);
+    }
+    .field-ink:disabled {
+        background-color: color-mix(in srgb, var(--color-parchment-shade) 45%, transparent);
+        color: var(--color-ink-faded);
+    }
+
+    /* Gilt divider with a lozenge in the middle. */
+    .rule-gilt {
+        border: 0;
+        height: 2px;
+        background-image: linear-gradient(
+            90deg,
+            transparent 0%,
+            var(--color-gilt) 18%,
+            var(--color-gilt-light) 50%,
+            var(--color-gilt) 82%,
+            transparent 100%
+        );
+    }
+}

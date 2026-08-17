@@ -19,13 +19,9 @@ export default function FormInput({
                                       text,
                                       ...options
                                   }: FormInputProps) {
-    const className =
-        "border border-gray-400 px-4 py-2 rounded" +
-        (options.disabled ? " bg-gray-400 text-gray-600" : "");
-
     return (
         <section className="flex flex-col">
-            <label htmlFor={id} className="text-sm">
+            <label htmlFor={id} className="heading text-xs uppercase text-ink-soft mb-1">
                 {text}
             </label>
             <input
@@ -35,7 +31,7 @@ export default function FormInput({
                 value={value}
                 onChange={(e) => setValue(e.target.value)}
                 placeholder={text}
-                className={className}
+                className="field-ink px-3 py-2"
                 {...options}
             />
         </section>
