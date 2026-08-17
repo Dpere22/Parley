@@ -48,10 +48,20 @@ def test_update_me_status_username(setup_db, client, account_data, message_data,
 
 def test_update_me_status_email(setup_db, client, account_data, message_data, chat_membership_data, authenticated_headers):
     request_data = {
-        "email": "UPDATED"
+        "email": "updated@example.com"
     }
     response = client.put("/accounts/me", headers=authenticated_headers, json=request_data)
     assert response.status_code == 200
+    assert response.json()["email"] == "updated@example.com"
+
+def test_update_me_rejects_malformed_email(setup_db, client, authenticated_headers):
+    response = client.put("/accounts/me", headers=authenticated_headers, json={"email": "not-an-address"})
+    assert response.status_code == 422
+
+def test_update_me_email_is_lowercased(setup_db, client, authenticated_headers):
+    response = client.put("/accounts/me", headers=authenticated_headers, json={"email": "MiXeD@Example.COM"})
+    assert response.status_code == 200
+    assert response.json()["email"] == "mixed@example.com"
 
 def test_update_me_username(setup_db, client, account_data, message_data, chat_membership_data, authenticated_headers):
     request_data = {

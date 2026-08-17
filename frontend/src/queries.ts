@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "./hooks";
-import api, { ApiError } from "./api";
+import api, { ApiError, isAuthError } from "./api";
 import type { Account, Chat, ChatAccounts, ChatMessages, Chats, Message, User } from "./types";
 
 const nullChat: Chat = {
@@ -98,11 +99,20 @@ export const useAccount = () => {
         queryKey: ["account"],
         queryFn: () => api.get<User>("/accounts/me", headers),
         enabled: loggedIn,
+        // A rejected token will not become valid on the next attempt, and retrying
+        // delayed the logout below by several seconds of backoff. Matches the other
+        // hooks here, which all opt out of retries.
+        retry: false,
     });
 
-    if (error?.code === "invalid_credentials") {
-        logout();
-    }
+    // Backstop for a token the server rejects - expired, malformed, or missing. This
+    // used to compare against "invalid_credentials", which /accounts/me never returns,
+    // so an expired session left the app stuck on the loading placeholder for good.
+    useEffect(() => {
+        if (isAuthError(error)) {
+            logout();
+        }
+    }, [error, logout]);
 
     const account = data || nullUser;
     return { account, error };

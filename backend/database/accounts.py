@@ -1,3 +1,4 @@
+from sqlalchemy import func
 from sqlmodel import Session, select
 
 from backend.database.schema import DBAccount, DBChat
@@ -24,14 +25,23 @@ def _get_by_username(session: Session, username: str) -> DBAccount:
         raise InvalidCredentials()
     return account
 
+def get_by_username(session: Session, username: str) -> DBAccount | None:
+    """Look up an account without raising when it is absent.
+
+    Login needs the None back rather than an exception, so that it can still spend the
+    time verifying a password and not leak which usernames exist.
+    """
+    stmt = select(DBAccount).where(DBAccount.username == username)
+    return session.exec(stmt).first()
+
 def check_username_available(session: Session, username: str) -> bool:
     stmt = select(DBAccount).where(DBAccount.username == username)
     user = session.exec(stmt).first()
     return user is None
 
 def check_email_available(session: Session, email: str) -> bool:
-    #stmt = select(DBAccount).where(func.lower(DBAccount.email) == email.lower())
-    stmt = select(DBAccount).where(DBAccount.email == email)
+    ## compared case-insensitively on both sides, so an existing Bob@x.com blocks bob@x.com
+    stmt = select(DBAccount).where(func.lower(DBAccount.email) == email.lower())
     user = session.exec(stmt).first()
     return user is None
 

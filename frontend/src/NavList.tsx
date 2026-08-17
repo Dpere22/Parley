@@ -1,6 +1,5 @@
-import { NavLink, useNavigate } from "react-router";
+import { NavLink } from "react-router";
 import { useAccount, useMyChats } from "./queries";
-import { useAuth } from "./hooks";
 import type { Chat } from "./types";
 
 const entryClassName = ({ isActive }: { isActive: boolean }) =>
@@ -31,13 +30,6 @@ function SectionHeading({ children }: { children: string }) {
 export default function NavList() {
     const { chats } = useMyChats();
     const { account } = useAccount();
-    const navigate = useNavigate();
-    const { logout } = useAuth();
-
-    const handleLogout = () => {
-        logout(); // clear token, auth state, etc.
-        navigate("/login"); // redirect after logout
-    };
 
     return (
         <nav className="h-screen overflow-y-auto bg-oak/25">
@@ -67,14 +59,6 @@ export default function NavList() {
                     <NavLink to={"/chats/browse"} className={entryClassName}>
                         <span className="heading text-sm">The Great Hall</span>
                     </NavLink>
-                </li>
-                <li>
-                    <button
-                        onClick={handleLogout}
-                        className="block w-full text-left px-4 py-3 border-b border-oak-dark/40 text-parchment/90 hover:bg-oak-dark/40 hover:text-parchment-light cursor-pointer transition-colors"
-                    >
-                        <span className="heading text-sm">Take Leave</span>
-                    </button>
                 </li>
             </ul>
 
